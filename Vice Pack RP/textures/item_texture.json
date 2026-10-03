@@ -34,6 +34,9 @@
     },
     "vice_weed": {
       "textures": "textures/items/vice_weed"
+    },
+    "vice_narcaine": {
+      "textures": "textures/items/vice_narcaine"
     }
   }
 }

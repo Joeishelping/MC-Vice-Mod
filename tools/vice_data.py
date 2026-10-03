@@ -34,6 +34,7 @@ ITEMS = {
     "cocaine":   ("Cocaine", None, 0, None, 16, "cocaine_lines"),
     "ketamine":  ("Ketamine", None, 0, None, 16, "ketamine_lines"),
     "weed":      ("Weed", None, 0, None, 64, "weed_plant"),
+    "narcaine":  ("Narcaine", "drink", 0.8, None, 16, "narcaine_block"),
 }
 SOIL = ["minecraft:grass_block", "minecraft:dirt", "minecraft:coarse_dirt", "minecraft:podzol", "minecraft:farmland",
         "minecraft:moss_block", "minecraft:rooted_dirt", "minecraft:mud"]
@@ -47,6 +48,7 @@ BLOCKS = {
     "opium_block":     ("cross", 8, "vice_opium", "vice:consumable", "opium"),
     "shrooms_block":   ("cross", 10, "vice_shrooms", "vice:consumable", "shrooms"),
     "bong_block":      ("cross", 13, "vice_bong", "vice:bong", "bong"),
+    "narcaine_block":  ("cross", 8, "vice_narcaine", "vice:consumable", "narcaine"),
     "cigarette_block": ("flat", 9, "vice_cigarette", "vice:consumable", "cigarette"),
     "cigar_block":     ("flat", 11, "vice_cigar", "vice:consumable", "cigar"),
     "joint_block":     ("flat", 9, "vice_joint", "vice:consumable", "joint"),
@@ -68,7 +70,29 @@ RECIPES = {
     "joint": (["paper", "vice:weed"], 1),
     "bong": (["glass", "glass", "glass", "glass_bottle"], 1),
     "shrooms": (["brown_mushroom", "red_mushroom", "glowstone_dust"], 2),
+    "narcaine": (["glass_bottle", "glistering_melon_slice"], 2),
 }
+
+# ---------------------------------------------------------------- colour haze (fog), see hazeTick in main.js
+HAZE_LEVELS = 8
+HAZE = {
+    "amber": "#f0a43a", "green": "#5fd35a", "magenta": "#e055d0", "ice": "#c4ecff", "purple": "#8a3cff",
+    "orange": "#ff8a2a", "grey": "#5c5c6e", "red": "#8b0a0a",
+}
+for i in range(12):                                   # rainbow for the shroom trip
+    import colorsys
+    r, g, b = colorsys.hsv_to_rgb(i / 12, 0.75, 1.0)
+    HAZE[f"hue{i}"] = "#%02x%02x%02x" % (round(r * 255), round(g * 255), round(b * 255))
+
+
+def haze_fog(color, hexcol, level):
+    k = level / HAZE_LEVELS
+    # level 1: a faint tint far away ... level 8: thick colour from 14 blocks out
+    end = round(260 * (1 - k) ** 1.6 + 14, 1)
+    air = {"fog_start": 0, "fog_end": end, "fog_color": hexcol, "render_distance_type": "fixed"}
+    return {"format_version": "1.16.100", "minecraft:fog_settings": {
+        "description": {"identifier": f"vice:haze_{color}_{level}"},
+        "distance": {"air": air, "weather": dict(air)}}}
 
 
 def item_json(iid, spec):
@@ -164,6 +188,10 @@ if __name__ == "__main__":
     for sub in ("items", "blocks", "recipes", "loot_tables"):
         shutil.rmtree(os.path.join(BP, sub), ignore_errors=True)
     shutil.rmtree(os.path.join(RP, "models"), ignore_errors=True)
+    shutil.rmtree(os.path.join(RP, "fogs"), ignore_errors=True)
+    for color, hexcol in HAZE.items():
+        for lv in range(1, HAZE_LEVELS + 1):
+            dump(os.path.join(RP, "fogs", f"haze_{color}_{lv}.json"), haze_fog(color, hexcol, lv))
 
     for iid, spec in ITEMS.items():
         dump(os.path.join(BP, "items", f"{iid}.json"), item_json(iid, spec))
@@ -203,4 +231,4 @@ if __name__ == "__main__":
             "unlock": {"context": "AlwaysUnlocked"},
             "ingredients": [{"item": i if ":" in i else f"minecraft:{i}"} for i in ing],
             "result": {"item": f"vice:{iid}", "count": n}}})
-    print(f"{len(ITEMS)} items, {len(BLOCKS)} blocks, {len(geos)} geometries, {len(RECIPES)} recipes")
+    print(f"{len(ITEMS)} items, {len(BLOCKS)} blocks, {len(geos)} geometries, {len(RECIPES)} recipes, {len(HAZE) * HAZE_LEVELS} fogs")

@@ -16,6 +16,25 @@ const check = (name, ok) => checks.push([name, !!ok]);
 const hold = (id, n = 1) => { inv[0] = new ItemStack(id, n); };
 const interact = (comp, b) => comps[comp].onPlayerInteract({ player, block: b, dimension: b.dimension });
 
+// the haze eases in a level at a time, the HUD only shows when something changes
+use("beer");
+advance(20 * 3);
+const fogs = () => LOG.filter((l) => l[0] === "cmd" && l[1].startsWith("fog @s push")).map((l) => +l[1].match(/_(\d+) /)[1]);
+check("haze ramps up gradually", fogs().length >= 3 && fogs().every((lv, i) => lv === i + 1));
+advance(20 * 5);
+const bars0 = count("bar");
+advance(20 * 20);
+check("HUD not stuck on screen", count("bar") === bars0);
+// narcaine clears it all
+use("narcaine");
+advance(5);
+check("narcaine: effects removed, haze gone, sober", count("uneffect") > 10 && LOG.some((l) => l[1] === "fog @s remove vice_haze") && msgs().at(-1).includes("sober"));
+const cmds0 = count("cmd"), bars1 = count("bar");
+advance(20 * 30);
+check("narcaine: nothing left running", count("cmd") === cmds0 && count("bar") === bars1);
+fire("scriptevent", { id: "vice:sober", sourceEntity: player });
+check("/scriptevent vice:sober", msgs().at(-1).includes("sober"));
+
 // held use of everything
 for (const i of ["beer", "liquor", "cigarette", "cigar", "joint", "opium", "shrooms"]) { use(i); advance(40); }
 advance(20 * 100);
@@ -44,8 +63,11 @@ lb.setPermutation(BlockPermutation.resolve("vice:ketamine_lines"));
 hold("vice:ketamine", 1);
 interact("vice:lines", lb);
 check("cut a second line", lb.permutation.getState("vice:lines") === 2 && inv[0] === undefined);
+const mark = LOG.length;
 interact("vice:lines", lb); advance(40);
-check("snort camera ran and cleared", count("camera", "InOutSine") === 1 && count("camera", "clear") === 1 && LOG.filter((l) => l[0] === "input").map((l) => l[2]).join() === "false,true");
+const since = LOG.slice(mark);
+check("snort camera ran and cleared", since.filter((l) => l[0] === "camera" && l[1] === "InOutSine").length === 1
+  && since.filter((l) => l[0] === "camera" && l[1] === "clear").length === 1 && since.filter((l) => l[0] === "input").map((l) => l[2]).join() === "false,true");
 check("one line left, k-hole", lb.permutation.getState("vice:lines") === 1 && msgs().some((m) => m.includes("drifts away")));
 interact("vice:lines", lb); advance(40);
 check("last line gone", lb.isAir);
@@ -91,6 +113,11 @@ check("cocaine overdose", msgs().some((m) => m.includes("cocaine overdose")));
 check("alcohol poisoning", msgs().some((m) => m.includes("alcohol poisoning")));
 check("crash", msgs().some((m) => m.includes("rush is gone")));
 check("bad trip", msgs().some((m) => m.includes("Bad trip")));
+// a placed narcaine works too
+const nb = block({ x: 10, y: 64, z: 10 });
+nb.setPermutation(BlockPermutation.resolve("vice:narcaine_block"));
+interact("vice:consumable", nb);
+check("placed narcaine", nb.isAir && msgs().at(-1).includes("sober"));
 check("no API misuse", count("error") === 0);
 
 for (const l of LOG) if (l[0] === "error") console.error("API misuse:", l[1]);

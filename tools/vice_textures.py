@@ -381,10 +381,36 @@ def lines(n, color, shade):
     return px
 
 
+def narcaine():
+    rows = [
+        "................",
+        ".......nn.......",
+        ".......nn.......",
+        "......nNNn......",
+        ".....oOOOOo.....",
+        ".....oOOOOo.....",
+        "....wWWWWWWw....",
+        "....wWhWWWWw....",
+        "....wWrrrrWw....",
+        "....wWrWWrWw....",
+        "....wWrrrrWw....",
+        "....wWhWWWWw....",
+        "....wWhWWWWw....",
+        "....wWWWWWWw....",
+        ".....wwwwww.....",
+        "................",
+    ]
+    return from_map(rows, {
+        "n": hexc("#e8e8e8"), "N": hexc("#b8b8b8"), "o": hexc("#a8501a"), "O": hexc("#f07a2a"),
+        "w": hexc("#7c8a96"), "W": hexc("#f6f8fa"), "h": hexc("#ffffff"), "r": hexc("#d0342c"),
+    })
+
+
 ICONS = {
     "vice_beer": beer, "vice_liquor": liquor, "vice_cigarette": cigarette, "vice_cigar": cigar,
     "vice_cocaine": cocaine, "vice_ketamine": ketamine, "vice_opium": opium,
     "vice_weed": weed, "vice_joint": joint, "vice_bong": bong, "vice_shrooms": shrooms,
+    "vice_narcaine": narcaine,
 }
 BLOCK_TEX = {
     **{f"vice_weed_plant_{i}": (lambda i=i: weed_plant(i)) for i in range(4)},

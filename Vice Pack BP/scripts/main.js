@@ -1,7 +1,7 @@
 // Vice Pack: beer, liquor, cigarettes, cigars, joints, bongs, weed, cocaine, ketamine, opium, shrooms.
 //
 // Using things:
-//  - Held items (beer, liquor, cigarette, cigar, joint, opium, shrooms, bong) are foods: hold use to drink/smoke/eat.
+//  - Held items (beer, liquor, cigarette, cigar, joint, opium, shrooms, bong, narcaine) are foods: hold use to drink/smoke/eat.
 //    When the use completes, the substance's handler in SUBSTANCES runs.
 //  - Every item can also be put down as a block: sneak + use on the top of a block (cocaine, ketamine and weed place
 //    with a plain use). Using a placed block consumes it: drink the bottle, smoke the joint, eat the shrooms.
@@ -11,6 +11,8 @@
 //  - Weed planted on dirt/grass grows in 4 stages (bone meal speeds it up); use it when grown to harvest buds.
 // A one-second loop runs the lasting parts: drunkenness, smoke, the cocaine crash, the k-hole, opium drowsiness,
 // being stoned, the shroom trip, the HUD line and overdoses.
+// Colours on screen are a fog haze that eases in and out (hazeTick), not full-screen fades.
+// Narcaine (or `/scriptevent vice:sober`) stops everything at once (sober).
 import * as mc from "@minecraft/server";
 
 const { world, system, MolangVariableMap, BlockPermutation, ItemStack } = mc;
@@ -35,6 +37,9 @@ function st(p) {
       doses: { cocaine: [], ketamine: [], opium: [], weed: [], shrooms: [] },
       odUntil: {},         // per kind: no second overdose of the same kind within 30 s
       busyUntil: 0,        // mid-snort / mid-bong-hit
+      glows: [],           // short colour boosts: { color, amount, until }
+      fogColor: "", fogLevel: 0, fogAmount: 0, fogId: "",   // the colour haze now on screen
+      hudKey: "", hudUntil: 0,
     };
     states.set(p.id, s);
   }
@@ -54,7 +59,7 @@ function effect(p, id, seconds, amp = 0, particles = false) {
 function sound(p, id, volume = 1, pitch = 1, at) {
   safe(() => p.dimension.playSound(id, at ?? p.location, { volume, pitch }));
 }
-/** tint the screen: colour 0..255, times in seconds */
+/** full-screen fade: only used for black (blackouts, eyelids); colours go through the haze (`glow`) */
 function tint(p, r, g, b, fadeIn, hold, fadeOut) {
   safe(() => p.camera.fade({
     fadeColor: { red: r / 255, green: g / 255, blue: b / 255 },
@@ -172,7 +177,7 @@ function getStoned(p, s, strength) {
   effect(p, "regeneration", 15, strength - 1);
   effect(p, "slowness", strength === 2 ? 90 : 60, 0);
   effect(p, "hunger", 40, strength - 1);
-  tint(p, 60, 160, 50, 0.8, 0.3, 2.2);
+  glow(s, "green", 0.7, 6);
   say(p, n === 1 ? "§aEverything is... chill. §7(you've got the munchies)" : "§aWhoa. §7Duuude.");
   if (n >= 4) {            // greened out: never deadly
     effect(p, "nausea", 20, 0);
@@ -188,7 +193,7 @@ const SUBSTANCES = {
     s.drunk = Math.min(10, s.drunk + 1);
     effect(p, "strength", 30, 0);
     sound(p, "random.burp", 0.8, rand(0.9, 1.1));
-    tint(p, 255, 190, 60, 0.3, 0.2, 1.2);
+    glow(s, "amber", 0.5, 5);
     say(p, "§6*gulp* §7Cold one.");
   },
   "vice:liquor"(p, s) {
@@ -197,7 +202,7 @@ const SUBSTANCES = {
     effect(p, "resistance", 30, 0);
     effect(p, "fire_resistance", 20, 0);
     sound(p, "random.burp", 1, 0.7);
-    tint(p, 200, 90, 20, 0.2, 0.4, 1.8);
+    glow(s, "amber", 0.75, 6);
     shake(p, 0.25, 1.5);
     say(p, "§6*cough* §7That burns.");
   },
@@ -243,7 +248,7 @@ const SUBSTANCES = {
     sound(p, "random.eat", 0.8, 0.9);
     effect(p, "night_vision", 90, 0);
     effect(p, "nausea", 15, 0);
-    tint(p, 255, 80, 200, 1.0, 0.2, 1.5);
+    glow(s, "magenta", 0.8, 6);
     if (s.badTrip) {
       effect(p, "darkness", 20, 0);
       effect(p, "slowness", 30, 1);
@@ -255,7 +260,7 @@ const SUBSTANCES = {
   },
   "vice:cocaine"(p, s) {
     const n = dose(s, "cocaine", 300);
-    tint(p, 255, 255, 255, 0.05, 0.1, 0.8);
+    glow(s, "ice", 0.7, 4);
     shake(p, 0.35, 2, "positional");
     sound(p, "random.orb", 0.6, 2);
     effect(p, "speed", 45, 2);
@@ -270,7 +275,7 @@ const SUBSTANCES = {
   "vice:ketamine"(p, s) {
     const n = dose(s, "ketamine", 240);
     sound(p, "mob.endermen.portal", 0.8, 0.5);
-    tint(p, 110, 40, 170, 0.8, 1.0, 2.5);
+    glow(s, "purple", 1, 8);
     effect(p, "slowness", 35, 2);
     effect(p, "nausea", 30, 0);
     effect(p, "resistance", 35, 1);
@@ -281,11 +286,14 @@ const SUBSTANCES = {
     say(p, n === 1 ? "§5The world drifts away from you..." : "§5Deeper... into the hole.");
     if (n >= 3) overdose(p, s, "ketamine");
   },
+  "vice:narcaine"(p) {
+    sober(p);
+  },
   "vice:opium"(p, s) {
     const n = dose(s, "opium", 360);
     light(p, s, "opium", 12);
     sound(p, "random.fizz", 0.4, 0.6);
-    tint(p, 255, 140, 40, 1.0, 0.8, 3.0);
+    glow(s, "orange", 0.8, 8);
     effect(p, "regeneration", 20, 1);
     effect(p, "resistance", 60, 1);
     effect(p, "slowness", 60, 1);
@@ -308,7 +316,7 @@ world.afterEvents.itemCompleteUse.subscribe((ev) => {
     return;
   }
   const fn = SUBSTANCES[item.typeId];
-  if (fn) safe(() => fn(p, st(p)));
+  if (fn) safe(() => fn(p, item.typeId === "vice:narcaine" ? undefined : st(p)));
 });
 
 // ---------------------------------------------------------------- putting things down
@@ -316,7 +324,7 @@ world.afterEvents.itemCompleteUse.subscribe((ev) => {
 const PLACE = {
   "vice:beer": "vice:beer_block", "vice:liquor": "vice:liquor_block", "vice:cigarette": "vice:cigarette_block",
   "vice:cigar": "vice:cigar_block", "vice:joint": "vice:joint_block", "vice:opium": "vice:opium_block",
-  "vice:shrooms": "vice:shrooms_block", "vice:bong": "vice:bong_block",
+  "vice:shrooms": "vice:shrooms_block", "vice:bong": "vice:bong_block", "vice:narcaine": "vice:narcaine_block",
 };
 const BLOCK_ITEM = Object.fromEntries(Object.entries(PLACE).map(([i, b]) => [b, i]));
 const FLAT = new Set(["vice:cigarette_block", "vice:cigar_block", "vice:joint_block"]);
@@ -375,7 +383,7 @@ function useBlock(p, block) {
     if (!creative(p)) dropItems(p.dimension, at, "minecraft:glass_bottle", 1);
   }
   if (id === "vice:shrooms") particle(p, "minecraft:crop_growth_emitter", at);
-  SUBSTANCES[id](p, st(p));
+  SUBSTANCES[id](p, id === "vice:narcaine" ? undefined : st(p));
 }
 
 function bongInteract(p, block) {
@@ -495,6 +503,67 @@ world.afterEvents.playerBreakBlock.subscribe((ev) => {
   if (id === "vice:weed_plant" && perm.getState("vice:growth") === 3) dropItems(ev.dimension, at, "vice:weed", 1 + Math.floor(Math.random() * 2));
 });
 
+// ---------------------------------------------------------------- the colour haze
+// Screen fades can only be fully opaque, so colours are done with fog (Vice Pack RP/fogs): one fog per colour and
+// strength level 1..HAZE_LEVELS, from a faint tint at the horizon to a thick glow. Every 5 ticks the strength eases
+// toward the strongest active effect; switching colour first fades the old one out (rainbow hues blend straight on).
+const HAZE_LEVELS = 8;
+function glow(s, color, amount, seconds) {
+  s.glows.push({ color, amount, until: now() + seconds * SEC });
+}
+function hazeTarget(s, t) {
+  const c = [];
+  if (now() < s.tripUntil) c.push(s.badTrip ? ["red", 0.9] : [`hue${Math.floor(t / (SEC * 0.75)) % 12}`, 0.85]);
+  if (now() < s.kUntil) c.push(["purple", 0.7 + 0.25 * Math.sin(t / 25)]);      // slow pulse
+  if (now() < s.opiumUntil) c.push(["orange", 0.55]);
+  if (now() < s.stonedUntil) c.push(["green", 0.45]);
+  if (now() < s.cokeUntil) c.push(["ice", 0.35]);
+  if (s.drunk > 0) c.push(["amber", Math.min(0.7, 0.15 + s.drunk / 12)]);
+  s.glows = s.glows.filter((g) => now() < g.until);
+  for (const g of s.glows) c.push([g.color, g.amount * Math.min(1, (g.until - now()) / (3 * SEC))]);   // kicks fade out
+  let best = ["", 0];
+  for (const x of c) if (x[1] > best[1] + 0.05) best = x;
+  return best;
+}
+function fog(p, id) {
+  safe(() => p.runCommand("fog @s remove vice_haze"));
+  if (id) safe(() => p.runCommand(`fog @s push ${id} vice_haze`));
+}
+function hazeTick(p, s, t) {
+  let [color, amount] = hazeTarget(s, t);
+  const blends = color.startsWith("hue") && s.fogColor.startsWith("hue");
+  if (s.fogColor && color !== s.fogColor && !blends && s.fogAmount > 0.02) amount = 0;    // fade the old colour out first
+  else if (color) s.fogColor = color;
+  const step = amount > s.fogAmount ? 0.035 : 0.05;                                     // ~3 s in, ~2 s out
+  s.fogAmount += Math.max(-step, Math.min(step, amount - s.fogAmount));
+  const level = Math.round(s.fogAmount * HAZE_LEVELS);
+  const id = level > 0 ? `vice:haze_${s.fogColor}_${level}` : "";
+  if (id !== s.fogId) { s.fogId = id; fog(p, id); }
+  if (!level && !amount) s.fogColor = "";
+}
+
+// ---------------------------------------------------------------- narcaine: back to sober
+const VICE_EFFECTS = ["speed", "slowness", "haste", "mining_fatigue", "strength", "jump_boost", "nausea", "regeneration",
+  "resistance", "fire_resistance", "blindness", "night_vision", "hunger", "weakness", "poison", "wither", "slow_falling", "darkness"];
+function sober(p, quiet = false) {
+  states.delete(p.id);
+  for (const e of VICE_EFFECTS) safe(() => p.removeEffect(e));
+  fog(p, "");
+  safe(() => p.runCommand("camerashake stop @s"));
+  safe(() => p.camera.clear());
+  lockMove(p, false);
+  safe(() => p.onScreenDisplay.setActionBar("§r"));
+  if (!quiet) {
+    say(p, "§a*psst* §fNarcaine. §7Everything stops. You're sober.");
+    sound(p, "random.fizz", 0.6, 1.8);
+    particle(p, "vice:powder", mouth(p, 0.25, 0.05), tintVars(0.75, 0.9, 1));
+  }
+}
+// `/scriptevent vice:sober` clears whoever runs it (or `/execute as @a run scriptevent vice:sober` for everyone)
+system.afterEvents.scriptEventReceive.subscribe((ev) => {
+  if (ev.id === "vice:sober" && ev.sourceEntity?.typeId === "minecraft:player") sober(ev.sourceEntity);
+});
+
 // ---------------------------------------------------------------- lasting effects (every second)
 function bar(level, max = 10, cells = 5) {
   const full = Math.round((level / max) * cells);
@@ -545,7 +614,7 @@ function cokeTick(p, s, t) {
     effect(p, "weakness", 30, 0);
     effect(p, "mining_fatigue", 30, 0);
     effect(p, "hunger", 20, 1);
-    tint(p, 30, 30, 50, 0.5, 0.5, 2.0);
+    glow(s, "grey", 0.6, 20);
     say(p, "§8The rush is gone. You feel awful.");
   }
 }
@@ -554,8 +623,7 @@ function ketTick(p, s, t) {
   if (now() >= s.kUntil) return;
   particle(p, "vice:swirl", p.getHeadLocation(), tintVars(0.7, 0.35, 1));
   if (everySec(t, 5)) {
-    // the world pulses in and out
-    tint(p, rand(60, 140), 20, rand(120, 200), 1.0, 0.5, 1.5);
+    // the world wobbles (the purple haze pulses on its own, see hazeTarget)
     shake(p, 0.2, 2, "rotational");
     sound(p, "mob.endermen.portal", 0.4, rand(0.4, 0.7));
   }
@@ -563,7 +631,7 @@ function ketTick(p, s, t) {
 
 function opiumTick(p, s, t) {
   if (now() >= s.opiumUntil) return;
-  if (everySec(t, 7)) tint(p, 20, 10, 0, 1.2, 0.6, 1.2);           // eyelids getting heavy
+  if (everySec(t, 10)) tint(p, 20, 10, 0, 1.5, 0.2, 1.5);          // eyelids getting heavy
   if (Math.random() < 0.15) particle(p, "vice:swirl", p.getHeadLocation(), tintVars(1, 0.6, 0.2));
 }
 
@@ -585,8 +653,6 @@ function tripTick(p, s, t) {
   }
   particle(p, "vice:swirl", p.getHeadLocation(), tintVars(...hue(h)));
   if (everySec(t, 6)) {
-    const [fr, fg, fb] = s.badTrip ? [0.4, 0, 0] : hue((h + 0.5) % 1);
-    tint(p, fr * 255, fg * 255, fb * 255, 0.8, 0, 1.4);
     shake(p, s.badTrip ? 0.3 : 0.1, 3, "rotational");
   }
   if (Math.random() < 0.35) {
@@ -604,7 +670,10 @@ function hud(p, s) {
   if (now() < s.kUntil) parts.push(`§dK-hole ${secsLeft(s.kUntil)}s`);
   if (now() < s.opiumUntil) parts.push(`§eSedated ${secsLeft(s.opiumUntil)}s`);
   if (now() < s.tripUntil) parts.push(`${s.badTrip ? "§4Bad trip" : "§dTripping"} ${secsLeft(s.tripUntil)}s`);
-  if (parts.length) safe(() => p.onScreenDisplay.setActionBar(parts.join(" §8| ")));
+  // only for a few seconds when something starts, ends or the drunk level changes; never stuck on screen
+  const key = parts.map((x) => x.replace(/ \d+s$/, "")).join("|");
+  if (key !== s.hudKey) { s.hudKey = key; s.hudUntil = now() + 4 * SEC; }
+  if (now() < s.hudUntil) safe(() => p.onScreenDisplay.setActionBar(parts.length ? parts.join(" §8| ") : "§7Sober."));
 }
 
 system.runInterval(() => {
@@ -616,13 +685,18 @@ system.runInterval(() => {
     safe(() => hud(p, s));
   }
 }, SEC);
+system.runInterval(() => {
+  const t = now();
+  for (const p of world.getAllPlayers()) {
+    const s = states.get(p.id);
+    if (s && p.isValid) safe(() => hazeTick(p, s, t));
+  }
+}, 5);
 
 // a fresh start after death or leaving (and never left stuck in the snort camera)
 world.afterEvents.entityDie.subscribe((ev) => {
   const p = ev.deadEntity;
-  states.delete(p.id);
-  safe(() => p.camera.clear());
-  lockMove(p, false);
+  sober(p, true);
 }, { entityTypes: ["minecraft:player"] });
 world.afterEvents.playerLeave.subscribe((ev) => states.delete(ev.playerId));
-world.afterEvents.playerSpawn.subscribe((ev) => { safe(() => ev.player.camera.clear()); lockMove(ev.player, false); });
+world.afterEvents.playerSpawn.subscribe((ev) => { if (ev.initialSpawn) sober(ev.player, true); });

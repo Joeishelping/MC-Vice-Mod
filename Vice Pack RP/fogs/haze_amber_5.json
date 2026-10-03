@@ -1,0 +1,22 @@
+{
+  "format_version": "1.16.100",
+  "minecraft:fog_settings": {
+    "description": {
+      "identifier": "vice:haze_amber_5"
+    },
+    "distance": {
+      "air": {
+        "fog_start": 0,
+        "fog_end": 68.1,
+        "fog_color": "#f0a43a",
+        "render_distance_type": "fixed"
+      },
+      "weather": {
+        "fog_start": 0,
+        "fog_end": 68.1,
+        "fog_color": "#f0a43a",
+        "render_distance_type": "fixed"
+      }
+    }
+  }
+}

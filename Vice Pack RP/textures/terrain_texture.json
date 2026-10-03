@@ -19,6 +19,9 @@
     "vice_bong": {
       "textures": "textures/items/vice_bong"
     },
+    "vice_narcaine": {
+      "textures": "textures/items/vice_narcaine"
+    },
     "vice_cigarette": {
       "textures": "textures/items/vice_cigarette"
     },
