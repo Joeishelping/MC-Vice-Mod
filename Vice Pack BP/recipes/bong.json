@@ -1,0 +1,32 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "vice:craft_bong"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "unlock": {
+      "context": "AlwaysUnlocked"
+    },
+    "ingredients": [
+      {
+        "item": "minecraft:glass"
+      },
+      {
+        "item": "minecraft:glass"
+      },
+      {
+        "item": "minecraft:glass"
+      },
+      {
+        "item": "minecraft:glass_bottle"
+      }
+    ],
+    "result": {
+      "item": "vice:bong",
+      "count": 1
+    }
+  }
+}

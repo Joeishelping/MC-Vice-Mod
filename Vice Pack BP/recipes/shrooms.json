@@ -1,0 +1,29 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "vice:craft_shrooms"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "unlock": {
+      "context": "AlwaysUnlocked"
+    },
+    "ingredients": [
+      {
+        "item": "minecraft:brown_mushroom"
+      },
+      {
+        "item": "minecraft:red_mushroom"
+      },
+      {
+        "item": "minecraft:glowstone_dust"
+      }
+    ],
+    "result": {
+      "item": "vice:shrooms",
+      "count": 2
+    }
+  }
+}

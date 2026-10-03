@@ -1,0 +1,36 @@
+{
+  "format_version": "1.21.40",
+  "vice:beer_block": {
+    "sound": "glass"
+  },
+  "vice:liquor_block": {
+    "sound": "glass"
+  },
+  "vice:opium_block": {
+    "sound": "grass"
+  },
+  "vice:shrooms_block": {
+    "sound": "grass"
+  },
+  "vice:bong_block": {
+    "sound": "glass"
+  },
+  "vice:cigarette_block": {
+    "sound": "grass"
+  },
+  "vice:cigar_block": {
+    "sound": "grass"
+  },
+  "vice:joint_block": {
+    "sound": "grass"
+  },
+  "vice:cocaine_lines": {
+    "sound": "grass"
+  },
+  "vice:ketamine_lines": {
+    "sound": "grass"
+  },
+  "vice:weed_plant": {
+    "sound": "grass"
+  }
+}

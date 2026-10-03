@@ -1,0 +1,32 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "vice:ketamine",
+      "menu_category": {
+        "category": "items",
+        "group": "minecraft:itemGroup.name.miscFood"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "textures": {
+          "default": "vice_ketamine"
+        }
+      },
+      "minecraft:display_name": {
+        "value": "Ketamine"
+      },
+      "minecraft:max_stack_size": 16,
+      "minecraft:tags": {
+        "tags": [
+          "vice:substance"
+        ]
+      },
+      "minecraft:block_placer": {
+        "block": "vice:ketamine_lines",
+        "replace_block_item": false
+      }
+    }
+  }
+}

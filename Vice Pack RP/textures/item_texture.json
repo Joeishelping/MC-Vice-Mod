@@ -1,0 +1,39 @@
+{
+  "resource_pack_name": "vice_pack",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "vice_beer": {
+      "textures": "textures/items/vice_beer"
+    },
+    "vice_liquor": {
+      "textures": "textures/items/vice_liquor"
+    },
+    "vice_cigarette": {
+      "textures": "textures/items/vice_cigarette"
+    },
+    "vice_cigar": {
+      "textures": "textures/items/vice_cigar"
+    },
+    "vice_joint": {
+      "textures": "textures/items/vice_joint"
+    },
+    "vice_opium": {
+      "textures": "textures/items/vice_opium"
+    },
+    "vice_shrooms": {
+      "textures": "textures/items/vice_shrooms"
+    },
+    "vice_bong": {
+      "textures": "textures/items/vice_bong"
+    },
+    "vice_cocaine": {
+      "textures": "textures/items/vice_cocaine"
+    },
+    "vice_ketamine": {
+      "textures": "textures/items/vice_ketamine"
+    },
+    "vice_weed": {
+      "textures": "textures/items/vice_weed"
+    }
+  }
+}

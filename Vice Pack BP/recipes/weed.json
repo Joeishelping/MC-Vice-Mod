@@ -1,0 +1,26 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "vice:craft_weed"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "unlock": {
+      "context": "AlwaysUnlocked"
+    },
+    "ingredients": [
+      {
+        "item": "minecraft:fern"
+      },
+      {
+        "item": "minecraft:bone_meal"
+      }
+    ],
+    "result": {
+      "item": "vice:weed",
+      "count": 1
+    }
+  }
+}

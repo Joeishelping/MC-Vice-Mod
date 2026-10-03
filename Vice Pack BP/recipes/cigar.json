@@ -1,0 +1,32 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "vice:craft_cigar"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "unlock": {
+      "context": "AlwaysUnlocked"
+    },
+    "ingredients": [
+      {
+        "item": "minecraft:paper"
+      },
+      {
+        "item": "minecraft:dried_kelp"
+      },
+      {
+        "item": "minecraft:dried_kelp"
+      },
+      {
+        "item": "minecraft:dried_kelp"
+      }
+    ],
+    "result": {
+      "item": "vice:cigar",
+      "count": 1
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "resource_pack_name": "vice_pack",
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "num_mip_levels": 4,
+  "texture_data": {
+    "vice_beer": {
+      "textures": "textures/items/vice_beer"
+    },
+    "vice_liquor": {
+      "textures": "textures/items/vice_liquor"
+    },
+    "vice_opium": {
+      "textures": "textures/items/vice_opium"
+    },
+    "vice_shrooms": {
+      "textures": "textures/items/vice_shrooms"
+    },
+    "vice_bong": {
+      "textures": "textures/items/vice_bong"
+    },
+    "vice_cigarette": {
+      "textures": "textures/items/vice_cigarette"
+    },
+    "vice_cigar": {
+      "textures": "textures/items/vice_cigar"
+    },
+    "vice_joint": {
+      "textures": "textures/items/vice_joint"
+    },
+    "vice_cocaine_lines_1": {
+      "textures": "textures/blocks/vice_cocaine_lines_1"
+    },
+    "vice_cocaine_lines_2": {
+      "textures": "textures/blocks/vice_cocaine_lines_2"
+    },
+    "vice_cocaine_lines_3": {
+      "textures": "textures/blocks/vice_cocaine_lines_3"
+    },
+    "vice_ketamine_lines_1": {
+      "textures": "textures/blocks/vice_ketamine_lines_1"
+    },
+    "vice_ketamine_lines_2": {
+      "textures": "textures/blocks/vice_ketamine_lines_2"
+    },
+    "vice_ketamine_lines_3": {
+      "textures": "textures/blocks/vice_ketamine_lines_3"
+    },
+    "vice_weed_plant_0": {
+      "textures": "textures/blocks/vice_weed_plant_0"
+    },
+    "vice_weed_plant_1": {
+      "textures": "textures/blocks/vice_weed_plant_1"
+    },
+    "vice_weed_plant_2": {
+      "textures": "textures/blocks/vice_weed_plant_2"
+    },
+    "vice_weed_plant_3": {
+      "textures": "textures/blocks/vice_weed_plant_3"
+    }
+  }
+}
