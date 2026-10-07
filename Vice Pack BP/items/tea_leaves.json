@@ -1,0 +1,42 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "vice:tea_leaves",
+      "menu_category": {
+        "category": "items",
+        "group": "vice:vices"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "textures": {
+          "default": "vice_tea_leaves"
+        }
+      },
+      "minecraft:display_name": {
+        "value": "Tea Leaves"
+      },
+      "minecraft:max_stack_size": 64,
+      "minecraft:tags": {
+        "tags": [
+          "vice:substance"
+        ]
+      },
+      "minecraft:block_placer": {
+        "block": "vice:tea_plant",
+        "replace_block_item": false,
+        "use_on": [
+          "minecraft:grass_block",
+          "minecraft:dirt",
+          "minecraft:coarse_dirt",
+          "minecraft:podzol",
+          "minecraft:farmland",
+          "minecraft:moss_block",
+          "minecraft:rooted_dirt",
+          "minecraft:mud"
+        ]
+      }
+    }
+  }
+}

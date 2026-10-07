@@ -1,2 +1,4 @@
 pack.name=Vice Pack
-pack.description=Beer, liquor, smokes, weed, shrooms and drugs with effects
+pack.description=Beer, liquor, smokes, weed, shrooms, coffee and drugs with effects
+vice:vices=VICES
+itemGroup.name.vices=VICES

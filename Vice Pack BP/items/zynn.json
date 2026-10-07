@@ -1,0 +1,38 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "vice:zynn",
+      "menu_category": {
+        "category": "items",
+        "group": "vice:vices"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "textures": {
+          "default": "vice_zynn"
+        }
+      },
+      "minecraft:display_name": {
+        "value": "Zynn"
+      },
+      "minecraft:max_stack_size": 16,
+      "minecraft:tags": {
+        "tags": [
+          "vice:substance"
+        ]
+      },
+      "minecraft:use_animation": "eat",
+      "minecraft:use_modifiers": {
+        "use_duration": 1.0,
+        "movement_modifier": 0.35
+      },
+      "minecraft:food": {
+        "nutrition": 0,
+        "saturation_modifier": 0,
+        "can_always_eat": true
+      }
+    }
+  }
+}

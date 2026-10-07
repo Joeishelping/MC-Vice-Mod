@@ -46,7 +46,7 @@
         ]
       },
       "minecraft:loot": "loot_tables/vice/bong.json",
-      "vice:bong": {}
+      "vice:reusable": {}
     }
   }
 }

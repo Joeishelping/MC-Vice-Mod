@@ -64,7 +64,7 @@
         ]
       },
       "minecraft:loot": "loot_tables/vice/weed.json",
-      "vice:weed_plant": {}
+      "vice:crop": {}
     },
     "permutations": [
       {

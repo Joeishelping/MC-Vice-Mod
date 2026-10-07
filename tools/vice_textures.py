@@ -406,14 +406,275 @@ def narcaine():
     })
 
 
+# ---------------------------------------------------------------- v1.3: zynn, coffee, tea, wine, pipe, morphine, crops
+import random
+
+
+def rng(seed):
+    return random.Random(seed)
+
+
+def zynn():
+    px = [[CLEAR] * 16 for _ in range(16)]
+    for y in range(16):
+        for x in range(16):
+            d = math.hypot(x + 0.5 - 8, (y + 0.5 - 8.5) * 1.15)
+            if d <= 6.6:
+                px[y][x] = hexc("#1d4f91") if d > 5.4 else (hexc("#2f6fc2") if d > 4.6 else hexc("#f2f5f8"))
+    for x in range(5, 11):                                # the name across the lid
+        px[8][x] = hexc("#1d4f91") if x % 2 else hexc("#2f6fc2")
+    put(px, [(6, 6), (7, 6)], hexc("#ffffff"))
+    return outline(px)
+
+
+def mug(liquid, light):
+    rows = [
+        "......s..s......",
+        ".......s..s.....",
+        "......s..s......",
+        "................",
+        "...wwwwwwwww....",
+        "...wLLLLLLLw....",
+        "...wllllllww....",
+        "...wWWWWWWWwwww.",
+        "...wWhWWWWWw..w.",
+        "...wWhWWWWWw..w.",
+        "...wWWWWWWWw..w.",
+        "...wWWWWWWWwww..",
+        "...wWWWWWWWw....",
+        "....wwwwwww.....",
+        "................",
+        "................",
+    ]
+    return from_map(rows, {
+        "s": hexc("#e8e8e8", 140), "w": hexc("#6b6b6b"), "W": hexc("#f2f0ea"), "h": hexc("#ffffff"),
+        "L": hexc(liquid), "l": hexc(light),
+    })
+
+
+def wine():
+    rows = [
+        "................",
+        ".......kk.......",
+        ".......kk.......",
+        ".......gg.......",
+        ".......gg.......",
+        "......gGGg......",
+        ".....gGhGGg.....",
+        ".....gGhGGg.....",
+        ".....gwwwwg.....",
+        ".....gwRRwg.....",
+        ".....gwwwwg.....",
+        ".....gGhGGg.....",
+        ".....gGGGGg.....",
+        ".....gGGGGg.....",
+        "......gggg......",
+        "................",
+    ]
+    return from_map(rows, {
+        "k": hexc("#7a1030"), "g": hexc("#1a2a1a"), "G": hexc("#3d1424"), "h": hexc("#7a3050"),
+        "w": hexc("#efe6d0"), "R": hexc("#9c1c4a"),
+    })
+
+
+def pipe():
+    rows = [
+        "................",
+        "................",
+        "................",
+        "...........oo...",
+        "..........oEEo..",
+        "..........obbo..",
+        "..........oBBo..",
+        "..........oBBo..",
+        "..........oBBo..",
+        ".........oBBBo..",
+        ".......ooBBBo...",
+        ".....ooBBBoo....",
+        "...ooBBBoo......",
+        ".oodBBoo........",
+        ".odoo...........",
+        "................",
+    ]
+    return from_map(rows, {
+        "o": hexc("#2a160a"), "B": hexc("#7a4520"), "b": hexc("#a8682e"), "E": hexc("#ff6a1a"), "d": hexc("#1a1a1a"),
+    })
+
+
+def morphine():
+    def col(t, s):
+        if t < 0.12:
+            return hexc("#d8d8d8")                    # plunger
+        if t < 0.2:
+            return hexc("#9a9a9a")
+        if t < 0.7:                                    # barrel with amber dose
+            return hexc("#e9b44c") if s < 0.3 else hexc("#f6e2b0")
+        if t < 0.76:
+            return hexc("#c43b3b")                     # red cap ring
+        return hexc("#c8d0d6")                         # needle
+    px = stick((2.5, 13.5), (13.5, 2.5), 2.6, col)
+    for y in range(16):                                # thin needle: trim the far end to one pixel
+        for x in range(16):
+            if x + (15 - y) > 24 and px[y][x][3] and x - (15 - y) != 0:
+                px[y][x] = CLEAR
+    return outline(px)
+
+
+def tobacco_leaf():
+    def col(t, s):
+        if abs(s) < 0.18:
+            return hexc("#c9b26a")                     # midrib
+        if (int(t * 10) % 3 == 0) and abs(s) < 0.8:
+            return hexc("#5f7a2c")
+        return hexc("#7d9a3a") if s < 0 else hexc("#6a8530")
+    px = [[CLEAR] * 16 for _ in range(16)]
+    ax, ay, bx, by = 3, 13, 13, 3
+    dx, dy = bx - ax, by - ay
+    ln = math.hypot(dx, dy)
+    for y in range(16):
+        for x in range(16):
+            cx, cy = x + 0.5 - ax, y + 0.5 - ay
+            t = (cx * dx + cy * dy) / (ln * ln)
+            if 0 <= t <= 1:
+                side = (cx * dy - cy * dx) / ln
+                w = 0.6 + 6.2 * math.sin(math.pi * t ** 0.8)
+                if abs(side) <= w / 2:
+                    px[y][x] = col(t, side / (w / 2))
+    put(px, [(2, 14), (1, 15)], hexc("#8a7a3a"))
+    return outline(px, hexc("#2c3a12"))
+
+
+def pile(seed, colors, n=26, dot=1):
+    r = rng(seed)
+    px = [[CLEAR] * 16 for _ in range(16)]
+    for _ in range(n):
+        x = int(8 + r.gauss(0, 2.6)); y = int(11 - abs(r.gauss(0, 2.2)))
+        for ddx in range(dot):
+            for ddy in range(dot):
+                if 1 <= x + ddx < 15 and 1 <= y + ddy < 15:
+                    px[y + ddy][x + ddx] = r.choice(colors)
+    return outline(px, hexc("#20140a"))
+
+
+def coffee_beans():
+    px = [[CLEAR] * 16 for _ in range(16)]
+    for bx, by in ((5, 6), (10, 5), (7, 10), (11, 11), (3, 11)):
+        for y in range(16):
+            for x in range(16):
+                if ((x + 0.5 - bx) / 2.3) ** 2 + ((y + 0.5 - by) / 1.7) ** 2 <= 1:
+                    px[y][x] = hexc("#2a1408") if x == bx and y != by - 2 else hexc("#6b3a1a") if y < by else hexc("#4e2a12")
+    return outline(px, hexc("#1a0c04"))
+
+
+def tea_leaves():
+    px = [[CLEAR] * 16 for _ in range(16)]
+    for (ax, ay, bx, by) in ((3, 12, 9, 4), (7, 13, 14, 8), (4, 9, 8, 14)):
+        dx, dy = bx - ax, by - ay
+        ln = math.hypot(dx, dy)
+        for y in range(16):
+            for x in range(16):
+                cx, cy = x + 0.5 - ax, y + 0.5 - ay
+                t = (cx * dx + cy * dy) / (ln * ln)
+                if 0 <= t <= 1:
+                    side = (cx * dy - cy * dx) / ln
+                    if abs(side) <= 0.4 + 2.2 * math.sin(math.pi * t):
+                        px[y][x] = hexc("#b9e08a") if abs(side) < 0.4 else hexc("#4f9a3a") if side < 0 else hexc("#3f8030")
+    return outline(px, hexc("#1f3d14"))
+
+
+def blob(px, cx, cy, rx, ry, colors, seed, density=1.0):
+    r = rng(seed)
+    for y in range(16):
+        for x in range(16):
+            if ((x + 0.5 - cx) / rx) ** 2 + ((y + 0.5 - cy) / ry) ** 2 <= 1 and r.random() < density:
+                px[y][x] = r.choice(colors)
+
+
+def stem(px, x, y0, y1, c=hexc("#3f6b22")):
+    for y in range(y1, y0 + 1):
+        px[y][x] = c
+
+
+def tobacco_plant(stage):
+    px = [[CLEAR] * 16 for _ in range(16)]
+    top = [12, 8, 4, 2][stage]
+    stem(px, 8, 15, top)
+    L = [(hexc("#6f9a34"), hexc("#86b244"), hexc("#5a7f2a"))]
+    for i, y in enumerate(range(14, top, -3)):        # broad leaves, alternating sides, smaller up top
+        size = max(2.0, 4.5 - i * 0.6) * (0.6 + 0.4 * stage / 3)
+        side = -1 if i % 2 else 1
+        blob(px, 8 + side * (size * 0.9), y - 0.5, size, size * 0.5, list(L[0]), seed=stage * 10 + i)
+    if stage == 3:
+        for x, y in ((7, 1), (8, 0), (9, 1), (8, 2), (6, 2), (10, 2)):
+            px[y][x] = hexc("#f2a0c4") if (x + y) % 2 else hexc("#ffd6e8")
+    return outline(px, hexc("#22380e"))
+
+
+def poppy_plant(stage):
+    px = [[CLEAR] * 16 for _ in range(16)]
+    heads = [[], [(8, 9)], [(5, 6), (8, 4), (11, 7)], [(5, 5), (8, 3), (11, 6)]][stage]
+    for hx, hy in heads or [(8, 12)]:
+        stem(px, hx, 15, hy + 1, hexc("#6f8f5a"))
+    blob(px, 8, 14, 4 + stage, 1.6, [hexc("#7fa06a"), hexc("#94b47e")], seed=40 + stage)
+    for hx, hy in heads:
+        if stage == 2:                                  # red flowers
+            for x, y in ((hx - 1, hy), (hx + 1, hy), (hx, hy - 1), (hx, hy), (hx - 1, hy - 1), (hx + 1, hy - 1)):
+                px[y][x] = hexc("#d6241e") if (x + y) % 2 else hexc("#a8140f")
+            px[hy][hx] = hexc("#1a1a1a")
+        elif stage == 3:                                # seed pods with crowns
+            for x, y in ((hx - 1, hy), (hx, hy), (hx + 1, hy), (hx - 1, hy + 1), (hx, hy + 1), (hx + 1, hy + 1)):
+                px[y][x] = hexc("#9db38a") if x != hx + 1 else hexc("#7f9670")
+            for x in (hx - 1, hx + 1):
+                px[hy - 1][x] = hexc("#4a5a2a")
+        else:
+            px[hy][hx] = hexc("#7fa06a")
+    return outline(px, hexc("#2a3a1a"))
+
+
+def coffee_plant(stage):
+    px = [[CLEAR] * 16 for _ in range(16)]
+    stem(px, 8, 15, [13, 10, 6, 4][stage], hexc("#5a3a1e"))
+    ry = [2, 3.5, 5, 6][stage]
+    blob(px, 8, 15 - ry - 1, [2.5, 4, 5.5, 6.5][stage], ry, [hexc("#1f5a24"), hexc("#2a7030"), hexc("#3a8a3c")], seed=60 + stage, density=0.85)
+    if stage == 3:
+        r = rng(7)
+        for _ in range(9):
+            x, y = r.randint(3, 12), r.randint(5, 12)
+            if px[y][x][3]:
+                px[y][x] = hexc("#c4161c") if r.random() < 0.7 else hexc("#ff5a3a")
+    return outline(px, hexc("#0f2a12"))
+
+
+def tea_plant(stage):
+    px = [[CLEAR] * 16 for _ in range(16)]
+    ry = [1.8, 2.8, 3.8, 4.4][stage]
+    blob(px, 8, 15 - ry, [3, 5, 6.5, 7.2][stage], ry, [hexc("#5aa84a"), hexc("#74c25c"), hexc("#489a3c")], seed=80 + stage, density=0.9)
+    if stage == 3:
+        r = rng(9)
+        for _ in range(7):
+            x, y = r.randint(2, 13), r.randint(8, 13)
+            if px[y][x][3]:
+                px[y][x] = hexc("#fffbe8")
+    return outline(px, hexc("#1f3d14"))
+
+
 ICONS = {
     "vice_beer": beer, "vice_liquor": liquor, "vice_cigarette": cigarette, "vice_cigar": cigar,
     "vice_cocaine": cocaine, "vice_ketamine": ketamine, "vice_opium": opium,
     "vice_weed": weed, "vice_joint": joint, "vice_bong": bong, "vice_shrooms": shrooms,
     "vice_narcaine": narcaine,
+    "vice_zynn": zynn, "vice_coffee": lambda: mug("#5a3218", "#7a4a26"), "vice_tea": lambda: mug("#9a7a2a", "#c2a04a"),
+    "vice_wine": wine, "vice_pipe": pipe, "vice_morphine": morphine, "vice_tobacco_leaf": tobacco_leaf,
+    "vice_tobacco_seeds": lambda: pile(1, [hexc("#5a3a1a"), hexc("#7a5228"), hexc("#3e2810")]),
+    "vice_poppy_seeds": lambda: pile(2, [hexc("#3a3e4a"), hexc("#5a5e6a"), hexc("#26282e")]),
+    "vice_coffee_beans": coffee_beans, "vice_tea_leaves": tea_leaves,
 }
 BLOCK_TEX = {
     **{f"vice_weed_plant_{i}": (lambda i=i: weed_plant(i)) for i in range(4)},
+    **{f"vice_tobacco_plant_{i}": (lambda i=i: tobacco_plant(i)) for i in range(4)},
+    **{f"vice_poppy_plant_{i}": (lambda i=i: poppy_plant(i)) for i in range(4)},
+    **{f"vice_coffee_plant_{i}": (lambda i=i: coffee_plant(i)) for i in range(4)},
+    **{f"vice_tea_plant_{i}": (lambda i=i: tea_plant(i)) for i in range(4)},
     **{f"vice_cocaine_lines_{n}": (lambda n=n: lines(n, hexc("#ffffff"), hexc("#dde3e6"))) for n in (1, 2, 3)},
     **{f"vice_ketamine_lines_{n}": (lambda n=n: lines(n, hexc("#efe6ff"), hexc("#c9b6ea"))) for n in (1, 2, 3)},
 }

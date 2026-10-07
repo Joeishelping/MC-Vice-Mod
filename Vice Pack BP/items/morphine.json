@@ -1,0 +1,38 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "vice:morphine",
+      "menu_category": {
+        "category": "items",
+        "group": "vice:vices"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "textures": {
+          "default": "vice_morphine"
+        }
+      },
+      "minecraft:display_name": {
+        "value": "Morphine"
+      },
+      "minecraft:max_stack_size": 16,
+      "minecraft:tags": {
+        "tags": [
+          "vice:substance"
+        ]
+      },
+      "minecraft:use_animation": "eat",
+      "minecraft:use_modifiers": {
+        "use_duration": 0.6,
+        "movement_modifier": 0.35
+      },
+      "minecraft:food": {
+        "nutrition": 0,
+        "saturation_modifier": 0,
+        "can_always_eat": true
+      }
+    }
+  }
+}

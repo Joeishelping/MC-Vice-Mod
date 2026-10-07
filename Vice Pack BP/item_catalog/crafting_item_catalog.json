@@ -1,0 +1,43 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:crafting_items_catalog": {
+    "categories": [
+      {
+        "category_name": "items",
+        "groups": [
+          {
+            "group_identifier": {
+              "icon": "vice:beer",
+              "name": "vice:vices"
+            },
+            "items": [
+              "vice:beer",
+              "vice:liquor",
+              "vice:cigarette",
+              "vice:cigar",
+              "vice:joint",
+              "vice:opium",
+              "vice:shrooms",
+              "vice:bong",
+              "vice:cocaine",
+              "vice:ketamine",
+              "vice:weed",
+              "vice:narcaine",
+              "vice:zynn",
+              "vice:coffee",
+              "vice:tea",
+              "vice:wine",
+              "vice:pipe",
+              "vice:morphine",
+              "vice:tobacco_leaf",
+              "vice:tobacco_seeds",
+              "vice:poppy_seeds",
+              "vice:coffee_beans",
+              "vice:tea_leaves"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

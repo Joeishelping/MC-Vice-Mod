@@ -15,6 +15,24 @@
   "vice:bong_block": {
     "sound": "glass"
   },
+  "vice:zynn_block": {
+    "sound": "grass"
+  },
+  "vice:coffee_block": {
+    "sound": "glass"
+  },
+  "vice:tea_block": {
+    "sound": "glass"
+  },
+  "vice:wine_block": {
+    "sound": "glass"
+  },
+  "vice:pipe_block": {
+    "sound": "grass"
+  },
+  "vice:morphine_block": {
+    "sound": "grass"
+  },
   "vice:narcaine_block": {
     "sound": "grass"
   },
@@ -34,6 +52,18 @@
     "sound": "grass"
   },
   "vice:weed_plant": {
+    "sound": "grass"
+  },
+  "vice:tobacco_plant": {
+    "sound": "grass"
+  },
+  "vice:poppy_plant": {
+    "sound": "grass"
+  },
+  "vice:coffee_plant": {
+    "sound": "grass"
+  },
+  "vice:tea_plant": {
     "sound": "grass"
   }
 }

@@ -19,6 +19,24 @@
     "vice_bong": {
       "textures": "textures/items/vice_bong"
     },
+    "vice_zynn": {
+      "textures": "textures/items/vice_zynn"
+    },
+    "vice_coffee": {
+      "textures": "textures/items/vice_coffee"
+    },
+    "vice_tea": {
+      "textures": "textures/items/vice_tea"
+    },
+    "vice_wine": {
+      "textures": "textures/items/vice_wine"
+    },
+    "vice_pipe": {
+      "textures": "textures/items/vice_pipe"
+    },
+    "vice_morphine": {
+      "textures": "textures/items/vice_morphine"
+    },
     "vice_narcaine": {
       "textures": "textures/items/vice_narcaine"
     },
@@ -60,6 +78,54 @@
     },
     "vice_weed_plant_3": {
       "textures": "textures/blocks/vice_weed_plant_3"
+    },
+    "vice_tobacco_plant_0": {
+      "textures": "textures/blocks/vice_tobacco_plant_0"
+    },
+    "vice_tobacco_plant_1": {
+      "textures": "textures/blocks/vice_tobacco_plant_1"
+    },
+    "vice_tobacco_plant_2": {
+      "textures": "textures/blocks/vice_tobacco_plant_2"
+    },
+    "vice_tobacco_plant_3": {
+      "textures": "textures/blocks/vice_tobacco_plant_3"
+    },
+    "vice_poppy_plant_0": {
+      "textures": "textures/blocks/vice_poppy_plant_0"
+    },
+    "vice_poppy_plant_1": {
+      "textures": "textures/blocks/vice_poppy_plant_1"
+    },
+    "vice_poppy_plant_2": {
+      "textures": "textures/blocks/vice_poppy_plant_2"
+    },
+    "vice_poppy_plant_3": {
+      "textures": "textures/blocks/vice_poppy_plant_3"
+    },
+    "vice_coffee_plant_0": {
+      "textures": "textures/blocks/vice_coffee_plant_0"
+    },
+    "vice_coffee_plant_1": {
+      "textures": "textures/blocks/vice_coffee_plant_1"
+    },
+    "vice_coffee_plant_2": {
+      "textures": "textures/blocks/vice_coffee_plant_2"
+    },
+    "vice_coffee_plant_3": {
+      "textures": "textures/blocks/vice_coffee_plant_3"
+    },
+    "vice_tea_plant_0": {
+      "textures": "textures/blocks/vice_tea_plant_0"
+    },
+    "vice_tea_plant_1": {
+      "textures": "textures/blocks/vice_tea_plant_1"
+    },
+    "vice_tea_plant_2": {
+      "textures": "textures/blocks/vice_tea_plant_2"
+    },
+    "vice_tea_plant_3": {
+      "textures": "textures/blocks/vice_tea_plant_3"
     }
   }
 }

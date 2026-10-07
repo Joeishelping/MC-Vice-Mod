@@ -37,6 +37,39 @@
     },
     "vice_narcaine": {
       "textures": "textures/items/vice_narcaine"
+    },
+    "vice_zynn": {
+      "textures": "textures/items/vice_zynn"
+    },
+    "vice_coffee": {
+      "textures": "textures/items/vice_coffee"
+    },
+    "vice_tea": {
+      "textures": "textures/items/vice_tea"
+    },
+    "vice_wine": {
+      "textures": "textures/items/vice_wine"
+    },
+    "vice_pipe": {
+      "textures": "textures/items/vice_pipe"
+    },
+    "vice_morphine": {
+      "textures": "textures/items/vice_morphine"
+    },
+    "vice_tobacco_leaf": {
+      "textures": "textures/items/vice_tobacco_leaf"
+    },
+    "vice_tobacco_seeds": {
+      "textures": "textures/items/vice_tobacco_seeds"
+    },
+    "vice_poppy_seeds": {
+      "textures": "textures/items/vice_poppy_seeds"
+    },
+    "vice_coffee_beans": {
+      "textures": "textures/items/vice_coffee_beans"
+    },
+    "vice_tea_leaves": {
+      "textures": "textures/items/vice_tea_leaves"
     }
   }
 }

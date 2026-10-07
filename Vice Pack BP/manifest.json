@@ -1,12 +1,12 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Vice Pack BP v1.2",
-    "description": "Beer, liquor, smokes, weed, shrooms and drugs with effects",
+    "name": "Vice Pack BP v1.3",
+    "description": "Beer, liquor, smokes, weed, shrooms, coffee and drugs with effects",
     "uuid": "095b1335-aef6-448b-b3fb-e9a7f5da3c4a",
     "version": [
       1,
-      2,
+      3,
       0
     ],
     "min_engine_version": [
@@ -21,7 +21,7 @@
       "uuid": "c023cba7-9445-418e-ba38-2ec52da1ae8c",
       "version": [
         1,
-        2,
+        3,
         0
       ]
     },
@@ -31,7 +31,7 @@
       "uuid": "08d71562-916e-4c99-805c-b8699e02365f",
       "version": [
         1,
-        2,
+        3,
         0
       ],
       "entry": "scripts/main.js"
@@ -42,7 +42,7 @@
       "uuid": "9831d1ab-8f8f-4ea1-a289-9a6f5b434f76",
       "version": [
         1,
-        2,
+        3,
         0
       ]
     },
