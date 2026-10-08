@@ -1,0 +1,32 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.vice_prop": {
+      "arrays": {
+        "textures": {
+          "Array.kinds": [
+            "Texture.cigarette",
+            "Texture.cigar",
+            "Texture.joint",
+            "Texture.pipe",
+            "Texture.beer",
+            "Texture.wine",
+            "Texture.liquor",
+            "Texture.coffee",
+            "Texture.tea",
+            "Texture.zynn"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.kinds[q.property('vice:kind')]"
+      ]
+    }
+  }
+}

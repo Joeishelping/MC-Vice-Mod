@@ -12,8 +12,8 @@
 // A one-second loop runs the lasting parts: drunkenness, smoke, the cocaine crash, the k-hole, opium drowsiness,
 // being stoned, the shroom trip, the HUD line and overdoses.
 // Colours on screen are a fog haze that eases in and out (hazeTick), not full-screen fades.
-// Crops (weed, tobacco, opium poppy, coffee, tea) grow in 4 stages (CROPS). NPCs (War Engine soldiers, villagers)
-// carry a stash of vices and use them themselves: sneak + use while looking at one to hand him something (see "NPCs").
+// Crops (weed, tobacco, opium poppy, coffee, tea) grow in 4 stages (CROPS). War Engine soldiers who are idle with no
+// enemy near have the odd smoke or drink: purely cosmetic, they're never touched (see "Soldiers").
 // Narcaine (or `/scriptevent vice:sober`) stops everything at once (sober).
 import * as mc from "@minecraft/server";
 
@@ -438,10 +438,6 @@ world.beforeEvents.playerInteractWithBlock.subscribe((ev) => {
 world.beforeEvents.itemUse.subscribe((ev) => {
   const p = ev.source, id = ev.itemStack?.typeId;
   if (!id?.startsWith("vice:")) return;
-  if (p.isSneaking) {
-    const e = lookedAtNpc(p);
-    if (e) { ev.cancel = true; system.run(() => safe(() => giveTo(p, e, id))); return; }
-  }
   if (!PLACE[id]) return;
   if (p.isSneaking) { ev.cancel = true; return; }
   if (FUEL[id] && !hasItem(p, FUEL[id].item)) {
@@ -598,308 +594,182 @@ world.afterEvents.playerBreakBlock.subscribe((ev) => {
   if (GRASS.has(id) && Math.random() < 0.04) dropItems(ev.dimension, at, WILD[Math.floor(Math.random() * WILD.length)], 1);
 });
 
-// ---------------------------------------------------------------- NPCs: War Engine soldiers (and villagers)
-// An NPC carries a stash (a dynamic property on him) and uses it himself, by what he's doing right now:
-//   idle (standing around, not shooting): smokes, drinks, a pouch, a coffee... every 40-90 s
-//   in a fight (War Engine's war:firing / war:aiming): stimulants (zynn, coffee, cocaine, a swig of liquor)
-//   hurt (under half health): painkillers (morphine, opium, ketamine, tea)
-// A War Engine medic with morphine injects wounded soldiers of his own faction near him.
-// Players hand things over with sneak + use while looking at him. New soldiers get a small ration once
-// (`/scriptevent vice:rations off` stops that). A soldier who dies drops what he was carrying.
-const NPC_TYPES = new Set(["war:soldier", "minecraft:villager_v2"]);
-const isNpc = (e) => !!e && NPC_TYPES.has(e.typeId);
-// how an NPC uses each item: when (idle/combat/hurt), how it looks, the effects [id, seconds, amplifier]
-const NPC_ITEMS = {
-  "vice:cigarette": { when: ["idle", "combat", "hurt"], how: "smoke", secs: 40, fx: [["haste", 90, 0]] },
-  "vice:cigar": { when: ["idle"], how: "smoke", secs: 75, fx: [["resistance", 90, 0], ["regeneration", 10, 0]] },
-  "vice:pipe": { when: ["idle"], how: "smoke", secs: 60, fuel: "vice:tobacco_leaf", fx: [["resistance", 60, 0], ["haste", 60, 0]] },
-  "vice:joint": { when: ["idle"], how: "smoke", secs: 35, stoned: 60, fx: [["regeneration", 15, 0], ["slowness", 60, 0]] },
-  "vice:bong": { when: ["idle"], how: "bong", fuel: "vice:weed", stoned: 90, fx: [["regeneration", 15, 1], ["slowness", 90, 0]] },
-  "vice:beer": { when: ["idle"], how: "drink", drunk: 1, fx: [["strength", 30, 0]] },
-  "vice:wine": { when: ["idle"], how: "drink", drunk: 1.5, fx: [["regeneration", 10, 0], ["strength", 30, 0]] },
-  "vice:liquor": { when: ["idle", "combat"], how: "drink", drunk: 2.5, fx: [["strength", 45, 1], ["resistance", 30, 0]] },
-  "vice:coffee": { when: ["idle", "combat"], how: "drink", sober: 1.5, fx: [["speed", 90, 0], ["haste", 90, 0]] },
-  "vice:tea": { when: ["idle", "hurt"], how: "drink", sober: 0.5, fx: [["regeneration", 15, 0]] },
-  "vice:zynn": { when: ["idle", "combat"], how: "pouch", fx: [["haste", 120, 0], ["speed", 20, 0]] },
-  "vice:cocaine": { when: ["combat"], how: "snort", dose: "cocaine", fx: [["speed", 45, 2], ["haste", 45, 1], ["jump_boost", 45, 0]],
-    crash: [["slowness", 30, 1], ["weakness", 30, 0]] },
-  "vice:ketamine": { when: ["hurt"], how: "snort", dose: "ketamine", trip: 35, fx: [["resistance", 35, 1], ["slowness", 35, 2], ["weakness", 35, 1]] },
-  "vice:opium": { when: ["hurt", "idle"], how: "smoke", secs: 12, dose: "opium", fx: [["regeneration", 20, 1], ["resistance", 60, 1], ["slowness", 60, 1]] },
-  "vice:morphine": { when: ["hurt"], how: "inject", dose: "opium", fx: [["instant_health", 1, 0], ["regeneration", 8, 2], ["resistance", 30, 1], ["slowness", 30, 0]] },
-  "vice:shrooms": { when: ["idle"], how: "eat", trip: 90, fx: [["night_vision", 90, 0]] },
-};
-const NPC_FUEL = new Set(["vice:tobacco_leaf", "vice:weed"]);               // carried for the pipe / bong
-// in a pinch, the best thing first
-const PREFER = {
-  hurt: ["vice:morphine", "vice:opium", "vice:ketamine", "vice:tea", "vice:cigarette"],
-  combat: ["vice:zynn", "vice:coffee", "vice:cocaine", "vice:liquor", "vice:cigarette"],
-};
-const STASH_MAX = 16;
-const npcs = new Map();       // id -> { next, drunk, smokeUntil, stonedUntil, tripUntil, crashAt, crashFx, doses, medicNext }
-const stashCache = new Map(); // id -> stash (to drop it when he dies)
-const lastGive = new Map();
+// ---------------------------------------------------------------- Soldiers: an idle smoke or drink (cosmetic only)
+// War Engine soldiers who have nothing to do (standing still, not shooting or aiming, not downed, not on a gun or in a
+// vehicle) and no enemy within 20 blocks now and then have a smoke, a drink, a coffee or a pouch. It's only for show:
+// a prop (our own `vice:prop` entity, the item's picture) follows his hand, goes up to his mouth for a drag or a sip
+// and back down, with smoke, embers and sounds. The soldier himself is never touched: no effects, no pushes, no tags,
+// no properties, nothing War Engine reads. The moment he has something else to do, the prop is simply gone.
+// Only the `war:soldier` id and his public state (war:firing, war:aiming, war:down, war:held, war:nest, war:pose,
+// war:faction) are read, each one optional, so newer War Engine versions work the same.
+// `/scriptevent vice:soldiers off` turns it off (`on` to turn it back on).
+const SOLDIER = "war:soldier";
+const PROP = "vice:prop";
+// prop kinds (the order matches the textures in vice_prop's render controller)
+const KINDS = ["cigarette", "cigar", "joint", "pipe", "beer", "wine", "liquor", "coffee", "tea", "zynn"];
+const HABITS = [              // what a soldier reaches for, and how often
+  ["cigarette", 6], ["coffee", 4], ["beer", 3], ["zynn", 3], ["cigar", 2], ["pipe", 1], ["tea", 1], ["wine", 1],
+  ["liquor", 1], ["joint", 1],
+];
+const SMOKES = new Set(["cigarette", "cigar", "joint", "pipe"]);
+const BOOZE = new Set(["beer", "wine", "liquor"]);
+const MAX_PROPS = 8;
+const props = new Map();       // soldier id -> { e, prop, kind, steps, i, t, at }
+const restUntil = new Map();   // soldier id -> tick he may have another
 
-const nameOf = (id) => id.slice(5).split("_").map((w) => w[0].toUpperCase() + w.slice(1)).join(" ");
-function prop(e, k) { try { return e.getProperty(k); } catch { return undefined; } }
-function hpRatio(e) {
-  const h = e.getComponent("minecraft:health");
-  return h ? h.currentValue / h.effectiveMax : 1;
+function sprop(e, k) { try { return e.getProperty(k); } catch { return undefined; } }   // missing on older/newer versions: fine
+function busy(e) {
+  if (sprop(e, "war:firing") || sprop(e, "war:aiming") || sprop(e, "war:down") || sprop(e, "war:held") || sprop(e, "war:nest")) return true;
+  if ((sprop(e, "war:pose") ?? 0) !== 0) return true;
+  try { if (e.getComponent("minecraft:riding")?.entityRidingOn) return true; } catch {}
+  return false;
 }
-function situation(e) {
-  if (prop(e, "war:down")) return "down";
-  if (hpRatio(e) < 0.5) return "hurt";
-  if (prop(e, "war:firing") || prop(e, "war:aiming")) return "combat";
-  return "idle";
+function still(e) {
+  try { const v = e.getVelocity(); return Math.hypot(v.x, v.z) < 0.03; } catch { return false; }
 }
-function getStash(e) {
-  try { return JSON.parse(e.getDynamicProperty("vice:stash") ?? "{}"); } catch { return {}; }
+function enemyNear(e) {
+  const f = sprop(e, "war:faction");
+  let near = [];
+  try { near = e.dimension.getEntities({ location: e.location, maxDistance: 20, excludeTypes: [PROP, "minecraft:item", "minecraft:xp_orb"] }); } catch { return true; }
+  for (const o of near) {
+    if (o.id === e.id) continue;
+    if (o.typeId === SOLDIER || o.typeId === "war:hound") {
+      const of = sprop(o, "war:faction");
+      if (of !== undefined && of !== f) return true;           // another faction (even an ally: better safe)
+      continue;
+    }
+    try { if (o.getComponent("minecraft:type_family")?.hasTypeFamily("monster")) return true; } catch {}
+  }
+  return false;
 }
-function setStash(e, stash) {
-  for (const k of Object.keys(stash)) if (!(stash[k] > 0)) delete stash[k];
-  const empty = !Object.keys(stash).length;
-  safe(() => e.setDynamicProperty("vice:stash", empty ? undefined : JSON.stringify(stash)));
-  safe(() => (empty ? e.removeTag("vice_stash") : e.addTag("vice_stash")));
-  if (empty) stashCache.delete(e.id); else stashCache.set(e.id, stash);
-}
-const stashSize = (stash) => Object.values(stash).reduce((a, b) => a + b, 0);
-const stashText = (stash) => Object.entries(stash).map(([k, n]) => `${n} ${nameOf(k)}`).join(", ") || "nothing";
-function ns(e) {
-  let n = npcs.get(e.id);
-  if (!n) { n = { lastUse: now() - randInt(10, 60) * SEC, idleGap: randInt(40, 90), drunk: 0, smokeUntil: 0, smokeHow: "", stonedUntil: 0, tripUntil: 0, crashAt: 0, crashFx: undefined, doses: {}, medicNext: 0 }; npcs.set(e.id, n); }
-  return n;
-}
-function npcHead(e) {
-  try { return e.getHeadLocation(); } catch { return { ...e.location, y: e.location.y + 1.6 }; }
-}
-function npcMouth(e, ahead = 0.35) {
-  const h = npcHead(e);
-  let d = { x: 0, y: 0, z: 0 };
+const free = (e) => !busy(e) && !enemyNear(e);
+
+// where his hand and his mouth are right now
+function frame(e) {
+  const h = e.getHeadLocation();
+  let d = { x: 0, y: 0, z: 1 };
   try { d = e.getViewDirection(); } catch {}
-  return { x: h.x + d.x * ahead, y: h.y - 0.12 + d.y * ahead, z: h.z + d.z * ahead };
+  const len = Math.hypot(d.x, d.z) || 1, fx = d.x / len, fz = d.z / len;
+  const rx = -fz, rz = fx;                                     // his right
+  const yaw = (Math.atan2(-fx, fz) * 180) / Math.PI;
+  return {
+    yaw,
+    hand: { x: e.location.x + fx * 0.4 + rx * 0.32, y: e.location.y + 0.95, z: e.location.z + fz * 0.4 + rz * 0.32 },
+    mouth: { x: h.x + fx * 0.32 + rx * 0.06, y: h.y - 0.22, z: h.z + fz * 0.32 + rz * 0.06 },
+  };
 }
-function npcExhale(e, strength) {
+const lerp = (a, b, k) => ({ x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, z: a.z + (b.z - a.z) * k });
+const ease = (k) => (k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2);
+
+// the little play: a list of steps { from, to, ticks, act (bottle tipped), fx (when the step ends) }
+function script(kind) {
+  const s = [{ from: "hand", to: "hand", ticks: 10 }];
+  if (SMOKES.has(kind)) {
+    s[0].fx = (r) => { sound(r.e, "fire.ignite", 0.4, 1.3, r.at); particle(r.e, "vice:ember", r.at); };
+    const drags = kind === "cigar" || kind === "pipe" ? 4 : 3;
+    for (let i = 0; i < drags; i++) {
+      s.push({ from: "hand", to: "mouth", ticks: 12 });
+      s.push({ from: "mouth", to: "mouth", ticks: 30, fx: (r) => particle(r.e, "vice:ember", r.at) });
+      s.push({ from: "mouth", to: "hand", ticks: 12, fx: (r) => puff(r.e) });
+      s.push({ from: "hand", to: "hand", ticks: randInt(60, 110), wisp: true });
+    }
+  } else if (kind === "zynn") {
+    s.push({ from: "hand", to: "mouth", ticks: 10 });
+    s.push({ from: "mouth", to: "mouth", ticks: 12, fx: (r) => sound(r.e, "random.eat", 0.4, 1.4, r.at) });
+    s.push({ from: "mouth", to: "hand", ticks: 10 });
+    s.push({ from: "hand", to: "hand", ticks: 20 });
+  } else {
+    const sips = kind === "liquor" ? 2 : 3;
+    for (let i = 0; i < sips; i++) {
+      s.push({ from: "hand", to: "mouth", ticks: 12 });
+      s.push({ from: "mouth", to: "mouth", ticks: 30, act: 1, start: (r) => sound(r.e, "random.drink", 0.5, rand(0.9, 1.1), r.at) });
+      s.push({ from: "mouth", to: "hand", ticks: 12, fx: (r) => { if (BOOZE.has(kind) && Math.random() < 0.4) sound(r.e, "random.burp", 0.4, rand(0.9, 1.2), r.at); } });
+      s.push({ from: "hand", to: "hand", ticks: randInt(70, 120), steam: kind === "coffee" || kind === "tea" });
+    }
+  }
+  return s;
+}
+function puff(e) {
   const m = new MolangVariableMap();
   let d = { x: 0, y: 0, z: 1 };
   try { d = e.getViewDirection(); } catch {}
-  m.setSpeedAndDirection("variable.puff", strength, d);
-  particle(e, "vice:smoke_puff", npcMouth(e, 0.3), m);
+  m.setSpeedAndDirection("variable.puff", 0.6, d);
+  const h = e.getHeadLocation();
+  particle(e, "vice:smoke_puff", { x: h.x + d.x * 0.35, y: h.y - 0.2, z: h.z + d.z * 0.35 }, m);
 }
 
-/** he uses `id` from his own stash (or `from`'s, for a medic treating him) */
-function npcUse(e, id, from = e) {
-  const spec = NPC_ITEMS[id];
-  const stash = getStash(from);
-  if (spec.fuel) {                                    // the pipe/bong stays, the fuel goes
-    if (!(stash[spec.fuel] > 0)) return false;
-    stash[spec.fuel]--;
-  } else {
-    if (!(stash[id] > 0)) return false;
-    stash[id]--;
-  }
-  setStash(from, stash);
-  const n = ns(e);
-  const at = npcHead(e);
-  switch (spec.how) {
-    case "smoke":
-      n.smokeUntil = now() + spec.secs * SEC;
-      sound(e, "fire.ignite", 0.5, 1.2, at);
-      particle(e, "vice:ember", npcMouth(e, 0.45));
-      system.runTimeout(() => { if (e.isValid) npcExhale(e, 0.7); }, 25);
-      break;
-    case "bong":
-      for (let i = 0; i < 3; i++) system.runTimeout(() => { if (e.isValid) sound(e, "random.swim", 0.5, rand(1.4, 1.9), npcHead(e)); }, i * 5);
-      system.runTimeout(() => { if (e.isValid) { npcExhale(e, 1.3); sound(e, "mob.horse.breathe", 0.7, 0.6, npcHead(e)); } }, 20);
-      break;
-    case "drink":
-      sound(e, "random.drink", 0.8, 1, at);
-      if (spec.drunk) system.runTimeout(() => { if (e.isValid) sound(e, "random.burp", 0.6, rand(0.9, 1.2), npcHead(e)); }, 30);
-      break;
-    case "snort":
-      particle(e, "vice:powder", npcMouth(e, 0.25), tintVars(...(id === "vice:ketamine" ? [0.85, 0.75, 1] : [1, 1, 1])));
-      sound(e, "mob.horse.breathe", 1, 1.6, at);
-      break;
-    case "inject":
-      sound(e, "random.pop", 0.6, 2, at);
-      particle(e, "minecraft:heart_particle", { ...at, y: at.y + 0.5 });
-      break;
-    default:
-      sound(e, "random.eat", 0.6, 1.2, at);
-  }
-  for (const [fx, secs, amp] of spec.fx) effect(e, fx, secs, amp);
-  if (spec.drunk) n.drunk = Math.min(10, n.drunk + spec.drunk);
-  if (spec.sober) n.drunk = Math.max(0, n.drunk - spec.sober);
-  if (spec.stoned) n.stonedUntil = Math.max(n.stonedUntil, now()) + spec.stoned * SEC;
-  if (spec.trip) n.tripUntil = Math.max(n.tripUntil, now()) + spec.trip * SEC;
-  if (spec.crash) { n.crashAt = now() + 45 * SEC; n.crashFx = spec.crash; }
-  if (spec.dose) {
-    const t = now();
-    n.doses[spec.dose] = (n.doses[spec.dose] ?? []).filter((x) => t - x < 300 * SEC);
-    n.doses[spec.dose].push(t);
-    if (n.doses[spec.dose].length >= 3) {             // he overdid it
-      effect(e, "poison", 10, 1);
-      effect(e, "wither", 6, 1);
-      effect(e, "slowness", 15, 2);
-      sound(e, "mob.warden.heartbeat", 1, 0.8, at);
-      n.doses[spec.dose] = [];
-    }
-  }
-  return true;
+function startProp(e) {
+  const total = HABITS.reduce((a, [, w]) => a + w, 0);
+  let roll = Math.random() * total, kind = HABITS[0][0];
+  for (const [k, w] of HABITS) { if ((roll -= w) < 0) { kind = k; break; } }
+  const f = frame(e);
+  const prop = e.dimension.spawnEntity(PROP, f.hand);
+  safe(() => prop.setProperty("vice:kind", KINDS.indexOf(kind)));
+  const r = { e, prop, kind, steps: script(kind), i: 0, t: 0, at: f.hand, act: 0 };
+  props.set(e.id, r);
+}
+function endProp(id) {
+  const r = props.get(id);
+  props.delete(id);
+  restUntil.set(id, now() + randInt(60, 180) * SEC);
+  if (r) safe(() => r.prop.remove());
 }
 
-function npcNarcaine(e) {
-  npcs.delete(e.id);
-  for (const fx of VICE_EFFECTS) safe(() => e.removeEffect(fx));
-  sound(e, "random.fizz", 0.6, 1.8, npcHead(e));
-  particle(e, "vice:powder", npcMouth(e, 0.25), tintVars(0.75, 0.9, 1));
-}
-
-/** pick something from his stash that suits the moment (`eager`: right after he was handed something) */
-function npcThink(e, eager = false) {
-  const n = ns(e);
-  const sit = situation(e);
-  if (sit === "down") return;
-  // time since the last thing he used: 10 s right after being handed something, else by what he's doing
-  const gap = eager ? 10 : sit === "idle" ? n.idleGap : sit === "combat" ? 30 : 15;
-  if (now() - n.lastUse < gap * SEC) return;
-  const stash = getStash(e);
-  const usable = Object.keys(stash).filter((id) => NPC_ITEMS[id]?.when.includes(sit) && (!NPC_ITEMS[id].fuel || stash[NPC_ITEMS[id].fuel] > 0));
-  if (!usable.length || (sit === "idle" && now() < n.smokeUntil)) return;          // one smoke at a time
-  const pick = PREFER[sit]?.find((id) => usable.includes(id)) ?? usable[Math.floor(Math.random() * usable.length)];
-  if (npcUse(e, pick)) { n.lastUse = now(); n.idleGap = randInt(40, 90); }
-}
-
-/** a medic with morphine treats a wounded soldier of his faction nearby */
-function medicTick(e) {
-  const n = ns(e);
-  if (now() < n.medicNext || !prop(e, "war:medic") || !(getStash(e)["vice:morphine"] > 0)) return;
-  n.medicNext = now() + 10 * SEC;
-  const f = prop(e, "war:faction");
-  let near = [];
-  try { near = e.dimension.getEntities({ type: "war:soldier", location: e.location, maxDistance: 8 }); } catch {}
-  const patient = near.find((o) => o.id !== e.id && prop(o, "war:faction") === f && !prop(o, "war:down") && hpRatio(o) < 0.5);
-  if (!patient) return;
-  if (npcUse(patient, "vice:morphine", e)) n.medicNext = now() + 25 * SEC;
-}
-
-// what a new soldier happens to have in his pockets
-function ration(e) {
-  if (e.typeId !== "war:soldier" || world.getDynamicProperty("vice:rations") === "off") return;
-  if (e.getDynamicProperty("vice:issued")) return;
-  e.setDynamicProperty("vice:issued", true);
-  const pick = (items) => items[Math.floor(Math.random() * items.length)];
-  const stash = {};
-  const add = (id, k = 1) => { stash[id] = (stash[id] ?? 0) + k; };
-  if (Math.random() < 0.75) add(pick(["vice:cigarette", "vice:cigarette", "vice:zynn", "vice:cigar"]), randInt(1, 4));
-  if (Math.random() < 0.5) add(pick(["vice:coffee", "vice:tea"]), randInt(1, 2));
-  if (Math.random() < 0.3) add(pick(["vice:beer", "vice:liquor", "vice:wine"]));
-  if (Math.random() < 0.1) { add("vice:pipe"); add("vice:tobacco_leaf", randInt(2, 4)); }
-  if (prop(e, "war:medic")) add("vice:morphine", randInt(2, 3));
-  else if (Math.random() < 0.15) add("vice:morphine");
-  setStash(e, stash);
-}
-
-function giveTo(p, e, id) {
-  if (!e.isValid) return;
-  if (now() - (lastGive.get(p.id) ?? -99) < 6) return;
-  lastGive.set(p.id, now());
-  const bar = (msg) => safe(() => p.onScreenDisplay.setActionBar(msg));
-  if (id === "vice:narcaine") {
-    if (takeOne(p, id)) { npcNarcaine(e); bar("§aNarcaine. He's sober."); }
-    return;
-  }
-  if (!NPC_ITEMS[id] && !NPC_FUEL.has(id)) { bar(`§7He doesn't know what to do with ${nameOf(id)}.`); return; }
-  const stash = getStash(e);
-  if (stashSize(stash) >= STASH_MAX) { bar(`§7His pockets are full: ${stashText(stash)}.`); return; }
-  if (!takeOne(p, id)) return;
-  stash[id] = (stash[id] ?? 0) + 1;
-  setStash(e, stash);
-  sound(p, "random.pop", 0.6, 1.4, npcHead(e));
-  bar(`§aHanded him a ${nameOf(id)}. §7He carries ${stashText(stash)}.`);
-  system.runTimeout(() => { if (e.isValid) safe(() => npcThink(e, true)); }, 20);
-}
-
-// sneak + use while looking at an NPC: hand him what you're holding
-world.beforeEvents.playerInteractWithEntity.subscribe((ev) => {
-  const p = ev.player, e = ev.target, id = ev.itemStack?.typeId;
-  if (!isNpc(e) || !id?.startsWith("vice:") || !p.isSneaking) return;
-  ev.cancel = true;
-  system.run(() => safe(() => giveTo(p, e, id)));
-});
-function lookedAtNpc(p) {
-  try { return p.getEntitiesFromViewDirection({ maxDistance: 5 }).map((h) => h.entity).find(isNpc); } catch { return undefined; }
-}
-
-// the lasting parts, every second: smoke, drunk stumbling, stoned/tripping sparkles, the cocaine crash
-function npcTick(e, n, t) {
-  if (now() < n.smokeUntil) {
-    particle(e, "vice:smoke_wisp", npcMouth(e, 0.55));
-    if (everySec(t, 5)) system.runTimeout(() => { if (e.isValid) npcExhale(e, 0.6); }, 12);
-  }
-  if (n.drunk > 0) {
-    if (t % (45 * SEC) < SEC) n.drunk = Math.max(0, n.drunk - 1);
-    if (n.drunk >= 3 && situation(e) === "idle" && Math.random() < 0.2) {
-      const a = rand(0, Math.PI * 2), f = 0.15 + n.drunk * 0.03;
-      safe(() => e.applyKnockback({ x: Math.cos(a) * f, z: Math.sin(a) * f }, 0));
-      if (Math.random() < 0.3) sound(e, "random.burp", 0.4, rand(1.3, 1.6), npcHead(e));
-    }
-  }
-  const head = npcHead(e), above = { ...head, y: head.y + 0.5 };
-  if (now() < n.stonedUntil && Math.random() < 0.3) particle(e, "vice:swirl", above, tintVars(0.4, 1, 0.3));
-  if (now() < n.tripUntil) particle(e, "vice:swirl", above, tintVars(...hue((t % 160) / 160)));
-  if (n.crashAt && now() >= n.crashAt) {
-    for (const [fx, secs, amp] of n.crashFx) effect(e, fx, secs, amp);
-    n.crashAt = 0;
+function propTick(r) {
+  const e = r.e;
+  if (!e.isValid || !r.prop.isValid) return endProp(e.id);
+  if (r.t % 5 === 0 && busy(e)) return endProp(e.id);                      // he's needed: gone at once
+  if (r.t % 20 === 0 && enemyNear(e)) return endProp(e.id);
+  const step = r.steps[r.i];
+  if (r.t === 0 && step.start) safe(() => step.start(r));
+  const want = step.act ?? 0;
+  if (want !== r.act) { r.act = want; safe(() => r.prop.setProperty("vice:act", want)); }
+  const f = frame(e);
+  r.at = lerp(f[step.from], f[step.to], ease(Math.min(1, r.t / step.ticks)));
+  safe(() => r.prop.teleport(r.at, { rotation: { x: 0, y: f.yaw } }));
+  if (step.wisp && r.t % 15 === 0) particle(e, "vice:smoke_wisp", { ...r.at, y: r.at.y + 0.15 });
+  if (step.steam && r.t % 20 === 0) particle(e, "vice:smoke_wisp", { ...r.at, y: r.at.y + 0.2 });
+  if (++r.t >= step.ticks) {
+    if (step.fx) safe(() => step.fx(r));
+    r.t = 0;
+    if (++r.i >= r.steps.length) endProp(e.id);
   }
 }
-const npcIdle = (n) => n.drunk <= 0 && now() >= n.smokeUntil && now() >= n.stonedUntil && now() >= n.tripUntil && !n.crashAt;
 
-let npcT = 0;
 system.runInterval(() => {
-  const t = now();
-  npcT++;
-  const seen = new Set();
+  for (const r of [...props.values()]) safe(() => propTick(r));
+}, 1);
+
+// every 2 s: idle soldiers near a player may start one; props nobody owns (e.g. after a reload) are cleared away
+let soldierT = 0;
+system.runInterval(() => {
+  soldierT++;
+  const on = world.getDynamicProperty("vice:soldiers") !== "off";
   for (const dimId of ["overworld", "nether", "the_end"]) {
     let dim;
     try { dim = world.getDimension(dimId); } catch { continue; }
-    // soldiers near players (rations, medics), and anyone carrying a stash
-    let list = [];
-    try {
-      list = dim.getEntities({ tags: ["vice_stash"] });
-      if (npcT % 5 === 0) {
-        for (const p of world.getAllPlayers()) {
-          if (p.dimension.id !== dim.id) continue;
-          for (const e of dim.getEntities({ type: "war:soldier", location: p.location, maxDistance: 64 })) list.push(e);
-        }
+    if (!dim) continue;
+    if (soldierT % 3 === 0) {
+      const mine = new Set([...props.values()].map((r) => r.prop.id));
+      try { for (const pr of dim.getEntities({ type: PROP })) if (!mine.has(pr.id)) pr.remove(); } catch {}
+    }
+    if (!on) continue;
+    const seen = new Set();
+    for (const p of world.getAllPlayers()) {
+      if (p.dimension.id !== dim.id) continue;
+      let list = [];
+      try { list = dim.getEntities({ type: SOLDIER, location: p.location, maxDistance: 48 }); } catch {}
+      for (const e of list) {
+        if (seen.has(e.id) || props.has(e.id)) continue;
+        seen.add(e.id);
+        if (props.size >= MAX_PROPS || now() < (restUntil.get(e.id) ?? 0) || Math.random() > 0.12) continue;
+        if (still(e) && free(e)) safe(() => startProp(e));
       }
-    } catch {}
-    for (const e of list) {
-      if (seen.has(e.id) || !e.isValid) continue;
-      seen.add(e.id);
-      safe(() => ration(e));
-      if (!e.hasTag("vice_stash")) continue;
-      safe(() => npcThink(e));
-      safe(() => medicTick(e));
-      stashCache.set(e.id, getStash(e));
     }
   }
-  for (const [id, n] of npcs) {
-    const e = world.getEntity(id);
-    if (!e?.isValid) { if (!e) npcs.delete(id); continue; }
-    safe(() => npcTick(e, n, t));
-    if (npcIdle(n) && !e.hasTag("vice_stash")) npcs.delete(id);
-  }
-}, SEC);
-
-// a fallen soldier drops what he carried
-world.afterEvents.entityDie.subscribe((ev) => {
-  const e = ev.deadEntity, stash = stashCache.get(e.id);
-  npcs.delete(e.id);
-  stashCache.delete(e.id);
-  if (!stash) return;
-  let at;
-  try { at = e.location; } catch { return; }
-  for (const [id, k] of Object.entries(stash)) dropItems(e.dimension, at, id, k);
-}, { entityTypes: [...NPC_TYPES] });
+}, 40);
+world.afterEvents.entityDie.subscribe((ev) => { if (props.has(ev.deadEntity.id)) endProp(ev.deadEntity.id); }, { entityTypes: [SOLDIER] });
+world.afterEvents.entityRemove?.subscribe?.((ev) => { if (props.has(ev.removedEntityId)) endProp(ev.removedEntityId); });
 
 // ---------------------------------------------------------------- the colour haze
 // Screen fades can only be fully opaque, so colours are done with fog (Vice Pack RP/fogs): one fog per colour and
@@ -960,10 +830,11 @@ function sober(p, quiet = false) {
 // `/scriptevent vice:sober` clears whoever runs it (or `/execute as @a run scriptevent vice:sober` for everyone)
 system.afterEvents.scriptEventReceive.subscribe((ev) => {
   if (ev.id === "vice:sober" && ev.sourceEntity?.typeId === "minecraft:player") sober(ev.sourceEntity);
-  if (ev.id === "vice:rations") {
+  if (ev.id === "vice:soldiers") {
     const on = ev.message.trim() !== "off";
-    world.setDynamicProperty("vice:rations", on ? "on" : "off");
-    if (ev.sourceEntity?.typeId === "minecraft:player") say(ev.sourceEntity, on ? "§aNew soldiers get a ration of vices." : "§7New soldiers get no vices.");
+    world.setDynamicProperty("vice:soldiers", on ? "on" : "off");
+    if (!on) for (const id of [...props.keys()]) endProp(id);
+    if (ev.sourceEntity?.typeId === "minecraft:player") say(ev.sourceEntity, on ? "§aIdle soldiers have the odd smoke or drink again." : "§7Soldiers no longer smoke or drink.");
   }
 });
 

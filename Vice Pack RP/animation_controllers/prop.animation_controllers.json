@@ -1,0 +1,29 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.vice_prop.tilt": {
+      "initial_state": "level",
+      "states": {
+        "level": {
+          "transitions": [
+            {
+              "tipped": "q.property('vice:act') == 1"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "tipped": {
+          "animations": [
+            "tilt"
+          ],
+          "transitions": [
+            {
+              "level": "q.property('vice:act') == 0"
+            }
+          ],
+          "blend_transition": 0.3
+        }
+      }
+    }
+  }
+}

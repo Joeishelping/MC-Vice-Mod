@@ -1,7 +1,7 @@
 // Headless check of Vice Pack's script against the mock API: every item, placing, the snort, the bong, the plant,
 // overdoses. Fails on any thrown error, unknown id or missing effect.
 import fs from "node:fs";
-import { fire, advance, player, LOG, inv, block, ItemStack, BlockPermutation, npc } from "@minecraft/server";
+import { fire, advance, player, LOG, inv, block, ItemStack, BlockPermutation, soldier, mob, entities } from "@minecraft/server";
 // main.js has to sit next to node_modules to find the mock
 fs.copyFileSync(new URL("../../Vice Pack BP/scripts/main.js", import.meta.url), new URL("./main.copy.js", import.meta.url));
 await import("./main.copy.js");
@@ -130,63 +130,56 @@ for (const [crop, product] of [["tobacco", "vice:tobacco_leaf"], ["poppy", "vice
   check(`${crop} harvest`, LOG.some((l) => l[0] === "drop" && l[1] === product) && cb.permutation.getState("vice:growth") === 1);
 }
 
-// ---------------------------------------------------------------- NPCs
-const props = (o = {}) => ({ "war:faction": 1, "war:down": false, "war:firing": false, "war:aiming": false, "war:medic": false, ...o });
-// a new soldier near the player gets a ration once
-const fresh = npc("war:soldier", props());
-advance(20 * 6);
-check("ration issued once", fresh.getDynamicProperty("vice:issued") === true);
-// left alone, an idle soldier with a ration uses it by himself (nobody hands him anything)
-const loner = npc("war:soldier", props(), { x: -20, y: 64, z: 0 });
-loner.setDynamicProperty("vice:issued", true);
-loner.setDynamicProperty("vice:stash", JSON.stringify({ "vice:cigarette": 1, "vice:coffee": 1 })); loner.addTag("vice_stash");
-advance(20 * 100);
-const left = Object.values(JSON.parse(loner.getDynamicProperty("vice:stash") ?? "{}")).reduce((a, b) => a + b, 0);
-check("idle soldier uses his ration on his own", loner.effects.includes("haste") && left < 2);
-loner.isValid = false;
-// hand a soldier a cigarette (sneak + use while looking at him): an idle soldier lights up
-const sol = npc("war:soldier", props());
-sol.setDynamicProperty("vice:issued", true);
-inv[0] = new ItemStack("vice:cigarette", 2);
-player.isSneaking = true; player.lookAt = sol;
-const give = fire("itemUse", { source: player, itemStack: inv[0] });
-advance(3);
-check("handed over", give.cancel && inv[0].amount === 1 && JSON.parse(sol.getDynamicProperty("vice:stash")).hasOwnProperty("vice:cigarette"));
-advance(40);
-check("idle soldier smokes it", sol.getDynamicProperty("vice:stash") === undefined && sol.effects.includes("haste"));
-advance(20 * 11);
-// in a fight he takes the zynn over the cocaine (handed both at once)
-sol.props["war:firing"] = true;
-inv[0] = new ItemStack("vice:cocaine", 1); fire("itemUse", { source: player, itemStack: inv[0] }); advance(8);
-inv[0] = new ItemStack("vice:zynn", 1); fire("itemUse", { source: player, itemStack: inv[0] }); advance(40);
-check("combat: zynn first", JSON.parse(sol.getDynamicProperty("vice:stash") ?? "{}")["vice:cocaine"] === 1 && !("vice:zynn" in JSON.parse(sol.getDynamicProperty("vice:stash") ?? "{}")));
-// hurt: morphine (handed over through the entity interaction)
-sol.props["war:firing"] = false; sol.hp = 6;
-inv[0] = new ItemStack("vice:morphine", 1);
-const gi = fire("interactEntity", { player, target: sol, itemStack: inv[0] }); advance(20 * 16);
-check("hurt soldier takes morphine", gi.cancel && sol.effects.includes("instant_health"));
-// a medic treats a wounded comrade of his faction
-const medic = npc("war:soldier", props({ "war:medic": true }), { x: 30, y: 64, z: 0 });
-medic.setDynamicProperty("vice:issued", true);
-medic.setDynamicProperty("vice:stash", JSON.stringify({ "vice:morphine": 2 })); medic.addTag("vice_stash");
-const hurt = npc("war:soldier", props(), { x: 33, y: 64, z: 0 });
-hurt.setDynamicProperty("vice:issued", true); hurt.hp = 4;
-const enemy = npc("war:soldier", props({ "war:faction": 2 }), { x: 31, y: 64, z: 2 });
-enemy.setDynamicProperty("vice:issued", true); enemy.hp = 4;
-advance(20 * 12);
-check("medic injects his own man, not the enemy", hurt.effects.includes("instant_health") && !enemy.effects.includes("instant_health"));
-// narcaine on a soldier, and a dead soldier drops his stash
-inv[0] = new ItemStack("vice:narcaine", 1); fire("itemUse", { source: player, itemStack: inv[0] }); advance(8);
-check("narcaine on a soldier", LOG.some((l) => l[0] === "npcUneffect"));
-player.isSneaking = false; player.lookAt = undefined;
-fire("die", { deadEntity: medic });
-check("dead soldier drops his stash", LOG.some((l) => l[0] === "drop" && l[1] === "vice:morphine"));
-// villagers too
-const vil = npc("minecraft:villager_v2", {});
-player.isSneaking = true; player.lookAt = vil;
-inv[0] = new ItemStack("vice:beer", 1); fire("itemUse", { source: player, itemStack: inv[0] }); advance(40);
-player.isSneaking = false; player.lookAt = undefined;
-check("villager drinks a beer", vil.effects.includes("strength"));
+// ---------------------------------------------------------------- soldiers: an idle smoke or drink, look only
+const spawns = () => LOG.filter((l) => l[0] === "spawn").length;
+const live = () => [...entities.values()].filter((e) => e.typeId === "vice:prop" && e.isValid);
+// an idle soldier near the player, nobody else around: before long he has a smoke or a drink
+const s1 = soldier({}, { x: 4, y: 64, z: 4 });
+let started = false;
+for (let i = 0; i < 20 * 120 && !started; i += 20) { advance(20); started = live().length > 0; }
+check("idle soldier has a vice", started);
+const pr = live()[0];
+const mark2 = LOG.length;
+advance(80);
+check("the prop moves with him (hand to mouth)", LOG.slice(mark2).filter((l) => l[0] === "tp" && l[1] === pr.id).length >= 70);
+// the moment he's needed, it's gone
+s1.props["war:aiming"] = true;
+advance(6);
+check("gone as soon as he aims", !pr.isValid);
+s1.props["war:aiming"] = false;
+// an enemy soldier nearby: never starts
+s1.isValid = false;
+const s2 = soldier({}, { x: -10, y: 64, z: 4 });
+const foe = soldier({ "war:faction": 2 }, { x: -20, y: 64, z: 4 });
+const before = spawns();
+advance(20 * 200);
+check("no vice with an enemy within 20 blocks", spawns() === before);
+// nor with a monster around
+foe.isValid = false;
+const zombie = mob("minecraft:zombie", ["monster", "zombie"], { x: -5, y: 64, z: 6 });
+advance(20 * 200);
+check("no vice with a monster around", spawns() === before);
+zombie.isValid = false;
+// nor while walking, downed or crouched
+s2.velocity = { x: 0.2, y: 0, z: 0 };
+advance(20 * 200);
+check("no vice while walking", spawns() === before);
+s2.velocity = { x: 0, y: 0, z: 0 };
+// a whole smoke or drink runs to the end and cleans up after itself
+for (let i = 0; i < 20 * 200 && spawns() === before; i += 20) advance(20);
+const pr2 = live()[0];
+advance(20 * 60);
+check("finishes and cleans up", pr2 && !pr2.isValid && live().length === 0);
+// off switch, and stray props (after a reload) are cleared
+fire("scriptevent", { id: "vice:soldiers", message: "off", sourceEntity: player });
+const b3 = spawns();
+advance(20 * 300);
+check("/scriptevent vice:soldiers off", spawns() === b3);
+const stray = mob("vice:prop", [], { x: 0, y: 64, z: 0 }); stray.remove = function () { this.isValid = false; };
+advance(20 * 8);
+check("stray props cleared", !stray.isValid);
+fire("scriptevent", { id: "vice:soldiers", message: "on", sourceEntity: player });
+check("soldiers never touched", !LOG.some((l) => l[0] === "error" && String(l[1]).startsWith("touched a war:soldier")));
 
 // a placed narcaine works too
 const nb = block({ x: 10, y: 64, z: 10 });

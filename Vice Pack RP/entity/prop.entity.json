@@ -1,0 +1,40 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "vice:prop",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "cigarette": "textures/items/vice_cigarette",
+        "cigar": "textures/items/vice_cigar",
+        "joint": "textures/items/vice_joint",
+        "pipe": "textures/items/vice_pipe",
+        "beer": "textures/items/vice_beer",
+        "wine": "textures/items/vice_wine",
+        "liquor": "textures/items/vice_liquor",
+        "coffee": "textures/items/vice_coffee",
+        "tea": "textures/items/vice_tea",
+        "zynn": "textures/items/vice_zynn"
+      },
+      "geometry": {
+        "default": "geometry.vice_prop"
+      },
+      "animations": {
+        "size": "animation.vice_prop.size",
+        "tilt": "animation.vice_prop.tilt",
+        "tilting": "controller.animation.vice_prop.tilt"
+      },
+      "scripts": {
+        "animate": [
+          "size",
+          "tilting"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.vice_prop"
+      ]
+    }
+  }
+}
