@@ -1,11 +1,11 @@
 # Vice Pack (Minecraft Bedrock add-on)
 
-Beer, wine, liquor, coffee, tea, cigarettes, cigars, a pipe, Zynn, joints, bongs, weed, cocaine, ketamine, opium,
-morphine and shrooms. Each one has its own effects, colour haze, sounds and particles, and each one can be put down in
-the world as a block. Grow your own weed, tobacco, opium poppies, coffee and tea. Idle War Engine soldiers have the
-odd smoke or drink (just for looks).
+Beer, wine, liquor, coffee, tea, White Monster, cigarettes, cigars, a pipe, Zynn, joints, bongs, weed, cocaine, crack,
+meth, ketamine, opium, morphine, heroin and shrooms. Each one has its own effects, colour haze, sounds and particles, and each one can be put down in
+the world as a block. Grow your own weed, tobacco, opium poppies, coffee and tea. Habits form,
+withdrawal hurts, and overdoses can kill you. It has nothing to do with any other add-on (War Engine included).
 
-**Install:** open `Vice_Pack_v1_4.mcaddon`, then turn on both packs (Behavior + Resource) for the world.
+**Install:** open `Vice_Pack_v1_5.mcaddon`, then turn on both packs (Behavior + Resource) for the world.
 Needs Minecraft Bedrock 1.21.90 or newer. Everything is in one collapsible **VICES** group in the creative inventory
 (Items tab), and craftable.
 
@@ -35,19 +35,6 @@ grown plant to harvest it (it goes back to stage 2), or break it.
 
 Getting started: breaking grass or ferns sometimes drops a seed, or craft them (below).
 
-## Soldiers (War Engine)
-
-Purely for looks: a War Engine soldier with **nothing to do** now and then has a smoke, a drink, a coffee or a pouch.
-You see the cigarette, bottle, cup or pipe in his hand go up to his mouth and back down, with smoke, embers, drinking
-sounds and the odd burp.
-
-- **Only when he's free:** standing still, not shooting or aiming, not downed, not on a gun or in a vehicle, and no
-  enemy soldier, hound or hostile mob within 20 blocks. The moment any of that changes, the item is simply gone.
-- **Never changes him:** no effects, no pushing, no healing, no items, no tags. His AI, orders, aim and
-  movement are exactly as War Engine makes them. The item is a separate prop that follows his hand.
-- **Any War Engine version:** it only looks for `war:soldier` and reads his state if it's there; War Engine needs no change.
-- Turn it off with `/scriptevent vice:soldiers off` (`on` to turn it back on).
-
 ## Items
 
 | Item | Recipe (shapeless, crafting table) | Effects |
@@ -65,10 +52,14 @@ sounds and the odd burp.
 | **Opium** | 3 poppies + brown mushroom | Regeneration II, Resistance II, Slowness II 60 s, warm glow, eyelids drooping |
 | **Narcaine** (×2) | glass bottle + glistering melon slice | Stops **everything** from this pack at once: effects, colour haze, camera shake, drunkenness, the HUD |
 | **Zynn** (×4) | tobacco leaf + paper + iron nugget | A pouch: Haste I 2 min, Speed I 20 s, no smoke. Too many → queasy |
-| **Coffee** | bowl + 2 coffee beans + sugar | Speed I + Haste I 90 s, wakes you up (clears Slowness), sobers you up a bit. 4 cups → the shakes |
-| **Tea** | bowl + 2 tea leaves | Regeneration I 15 s, settles your stomach (clears Nausea, Weakness) |
+| **Coffee** | bowl + 2 coffee beans + sugar | Speed I + Haste II 2 min, wakes you up (clears Slowness), sobers you up a bit, a caffeine crash later. 3 caffeine in 5 min → palpitations |
+| **Tea** | bowl + 2 tea leaves | Regeneration I, Absorption 2 min, Resistance I; settles your stomach (clears Nausea, Weakness, Poison) and calms withdrawal for a minute |
 | **Wine** | glass bottle + 3 sweet berries | Regeneration I, Strength I. +1.5 drunk, deep red haze |
 | **Pipe** | bowl + stick | Smokes a tobacco leaf: Resistance I + Haste I 60 s. Not used up |
+| **White Monster** (×2) | iron nugget + 2 sugar + coffee beans | Speed II + Haste II 60 s, Jump Boost. Counts as 2 coffees. Then a crash |
+| **Crack** (×2) | cocaine + bone meal | 25 s rush: Speed III, Strength II, Haste III, pounding heart, paranoia. Then a brutal crash. **Two in 3 min = overdose** |
+| **Meth** (×2) | glass bottle + redstone + sugar + glowstone dust | 3 min: Speed II, Haste II, Night Vision, Jump Boost, jaw clenching, **paranoia** (footsteps, hisses, shadow figures). Then the comedown |
+| **Heroin** (×2) | 2 opium + glass bottle + iron nugget | Regeneration II, Resistance III, Slowness III 90 s, **nodding off** (head drops, screen goes dark). Counts double toward an opioid overdose |
 | **Morphine** (×2) | opium + glass bottle + iron nugget | Instant Health, Regeneration III, Resistance II, clears Wither/Poison. Counts as opium for overdoses |
 | Cigarette / Cigar | paper + tobacco leaf (×4) / paper + 3 tobacco leaves | Also still craftable from dried kelp |
 | Seeds | poppy → 2 poppy seeds; wheat seeds + dried kelp → 2 tobacco seeds; cocoa beans + bone meal → 2 coffee beans; oak leaves + bone meal → tea leaves | |
@@ -84,29 +75,47 @@ sounds and the odd burp.
 - **Get rid of it all:** use **Narcaine**, or run `/scriptevent vice:sober` (clears you;
   `/execute as @a run scriptevent vice:sober` clears everyone).
 
+## How it feels
+
+- **Overdoses take 30 seconds:** the screen keeps going black, your heart races (stimulants) or fades (opioids),
+  Wither at 20 s and 10 s, and then: your heart gives out / your breathing stops (**deadly**). **Narcaine** saves
+  you. Alcohol, ketamine and caffeine overdoses leave you wrecked but alive.
+- **Habits:** every smoke, drink, coffee or hit hooks you a little (nicotine, alcohol, caffeine, opioids,
+  stimulants). Hooked and going without for a few minutes means **withdrawal** every 25–50 s: cravings, the shakes,
+  headaches, dope sickness (nausea, aches, throwing up), the grey depression after stimulants; heavy drinkers get the
+  DTs (sounds and shapes that aren't there). Using again fixes it; staying clean fades it (−1 per 10 min). It stays with
+  you when you leave and come back; Narcaine or dying clears it.
+- **Nodding off** (heroin, opium): your head drops, the screen darkens, then you jerk back awake.
+- **Paranoia** (meth, crack, cocaine, a bad trip): footsteps behind you, creeper hisses, a shadow figure at the
+  edge of sight, whispers in chat.
+- **Ketamine:** you float up out of your body and look down at yourself.
+- **Drinking:** the room keeps turning, you stumble harder, throw up when you're very drunk, and wake up to a
+  **hangover** (Mining Fatigue, Weakness, Slowness).
+- **Crashes** after cocaine, crack, meth and caffeine.
+
 ## Too much
 
 - **Drunk** level 0–10 in the action bar, −1 every 45 s. 3+: Nausea, stumbling. 5+: Slowness, brief blackouts.
   8+: alcohol poisoning.
-- **Overdose:** 3 doses of cocaine (within 5 min), ketamine (4 min) or opium (6 min): black screen, Blindness,
-  Poison II and **Wither II, which can kill you** at low health.
+- **Overdose:** 3 cocaine (5 min), 2 crack (3 min), 3 meth (10 min), 3 ketamine (4 min), 3 opioids (6 min; heroin
+  counts double), 6 caffeine (5 min). See "How it feels".
 - **Greening out:** 4 weed hits in 3 min: Nausea, Slowness III, Darkness (never deadly).
 - **Bad trip:** 3 shrooms in 5 min: dark red orbs, bass notes, Darkness, Slowness.
 
-Dying resets everything.
+Dying resets everything (habits too).
 
 ## Files
 
 | Path | What |
 |---|---|
-| `Vice Pack BP/scripts/main.js` | All the behaviour: `SUBSTANCES` (what each one does), placing, the placed blocks (snort, bong/pipe, crops), idle soldiers (look only), the per-second loop, the HUD |
+| `Vice Pack BP/scripts/main.js` | All the behaviour: `SUBSTANCES` (what each one does), placing, the placed blocks (snort, bong/pipe, crops), the per-second loop, the HUD |
 | `Vice Pack BP/item_catalog/` | The VICES creative group |
 | `tools/vice_data.py` | Writes all the item, block, geometry, recipe, loot table and texture-atlas JSON from its tables |
 | `tools/vice_textures.py` | Draws the item icons, block textures (lines, plant stages) and pack icon |
 | `tools/build_vice.py` | Builds `Vice_Pack_vX_Y.mcaddon` |
 | `Vice Pack RP/fogs/` | The colour haze: one fog per colour and strength level (generated by `vice_data.py`) |
 | `Vice Pack RP/particles/` | `vice:smoke_puff`, `smoke_wisp`, `ember`, `powder`, `swirl`, `trip_orb` |
-| `tests/vice/run.mjs` | Headless check against a mock of the API: every item, placing, the snort, the bong/pipe, every crop, the haze, Narcaine, soldiers (only when idle with no enemy near, never changed), overdoses (`node tests/vice/run.mjs`) |
+| `tests/vice/run.mjs` | Headless check against a mock of the API: every item, placing, the snort, the bong/pipe, every crop, the haze, Narcaine, every item's effects, crashes, nodding, paranoia, overdoses (deadly and saved), habits and withdrawal, hangovers (`node tests/vice/run.mjs`) |
 
 After changing a table: `python3 tools/vice_data.py && python3 tools/vice_textures.py && node tests/vice/run.mjs && python3 tools/build_vice.py`
 

@@ -658,6 +658,89 @@ def tea_plant(stage):
     return outline(px, hexc("#1f3d14"))
 
 
+# ---------------------------------------------------------------- v1.5: white monster, crack, meth, heroin
+def white_monster():
+    rows = [
+        "................",
+        ".....gssssg.....",
+        "....gSSSSSSg....",
+        "....gWWWWWWg....",
+        "....gWkWWkWg....",
+        "....gWkWWkWg....",
+        "....gWkWkWkW....",
+        "....gWkWkWkg....",
+        "....gWkkWkkg....",
+        "....gWWWWWWg....",
+        "....gWhWWWWg....",
+        "....gWhWWWWg....",
+        "....gWWWWWWg....",
+        "....gSSSSSSg....",
+        ".....gssssg.....",
+        "................",
+    ]
+    px = from_map(rows, {
+        "g": hexc("#6f7378"), "s": hexc("#b8bcc0"), "S": hexc("#d6d9dc"), "W": hexc("#f8f8f6"),
+        "k": hexc("#2a2a2a"), "h": hexc("#ffffff"),
+    })
+    px[6][11] = hexc("#6f7378")
+    return px
+
+
+def crack():
+    px = [[CLEAR] * 16 for _ in range(16)]
+    r = rng(11)
+    for cx, cy, rr in ((6, 9, 2.6), (10, 10, 2.2), (8, 6, 1.8), (11, 6, 1.4), (5, 12, 1.5)):
+        for y in range(16):
+            for x in range(16):
+                if math.hypot(x + 0.5 - cx, (y + 0.5 - cy) * 1.1) <= rr + r.uniform(-0.4, 0.3):
+                    px[y][x] = r.choice([hexc("#efe6c8"), hexc("#e2d4a8"), hexc("#f8f2dc"), hexc("#cdbb8a")])
+    return outline(px, hexc("#5a4a2a"))
+
+
+def meth():
+    rows = [
+        "................",
+        "................",
+        "....pppppppp....",
+        "....prrrrrrp....",
+        "....pLLLLLLp....",
+        "....pLLLLLLp....",
+        "....pLLcLLLp....",
+        "....pLcCcCLp....",
+        "....pcCcCcCp....",
+        "....pCcHcCcp....",
+        "....pcCcCCcp....",
+        "....pCcCcHCp....",
+        "....pcCCcCcp....",
+        ".....pppppp.....",
+        "................",
+        "................",
+    ]
+    return from_map(rows, {
+        "p": hexc("#7f8c95"), "r": hexc("#2a7fd0"), "L": hexc("#e6f0f4", 140),
+        "c": hexc("#8fe3ff"), "C": hexc("#c8f4ff"), "H": hexc("#ffffff"),
+    })
+
+
+def syringe(liquid, cap):
+    def col(t, s):
+        if t < 0.12:
+            return hexc("#d8d8d8")
+        if t < 0.2:
+            return hexc("#9a9a9a")
+        if t < 0.7:
+            return hexc(liquid) if s < 0.3 else hexc("#f0e6d8")
+        if t < 0.76:
+            return hexc(cap)
+        return hexc("#c8d0d6")
+    px = stick((2.5, 13.5), (13.5, 2.5), 2.6, col)
+    for y in range(16):
+        for x in range(16):
+            if x + (15 - y) > 24 and px[y][x][3] and x - (15 - y) != 0:
+                px[y][x] = CLEAR
+    return outline(px)
+
+
 ICONS = {
     "vice_beer": beer, "vice_liquor": liquor, "vice_cigarette": cigarette, "vice_cigar": cigar,
     "vice_cocaine": cocaine, "vice_ketamine": ketamine, "vice_opium": opium,
@@ -668,6 +751,8 @@ ICONS = {
     "vice_tobacco_seeds": lambda: pile(1, [hexc("#5a3a1a"), hexc("#7a5228"), hexc("#3e2810")]),
     "vice_poppy_seeds": lambda: pile(2, [hexc("#3a3e4a"), hexc("#5a5e6a"), hexc("#26282e")]),
     "vice_coffee_beans": coffee_beans, "vice_tea_leaves": tea_leaves,
+    "vice_white_monster": white_monster, "vice_crack": crack, "vice_meth": meth,
+    "vice_heroin": lambda: syringe("#5a3214", "#e07a1a"),
 }
 BLOCK_TEX = {
     **{f"vice_weed_plant_{i}": (lambda i=i: weed_plant(i)) for i in range(4)},

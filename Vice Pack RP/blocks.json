@@ -33,6 +33,18 @@
   "vice:morphine_block": {
     "sound": "grass"
   },
+  "vice:white_monster_block": {
+    "sound": "glass"
+  },
+  "vice:crack_block": {
+    "sound": "grass"
+  },
+  "vice:meth_block": {
+    "sound": "grass"
+  },
+  "vice:heroin_block": {
+    "sound": "grass"
+  },
   "vice:narcaine_block": {
     "sound": "grass"
   },

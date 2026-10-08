@@ -33,7 +33,11 @@
               "vice:tobacco_seeds",
               "vice:poppy_seeds",
               "vice:coffee_beans",
-              "vice:tea_leaves"
+              "vice:tea_leaves",
+              "vice:white_monster",
+              "vice:crack",
+              "vice:meth",
+              "vice:heroin"
             ]
           }
         ]

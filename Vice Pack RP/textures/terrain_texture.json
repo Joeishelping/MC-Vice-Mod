@@ -37,6 +37,18 @@
     "vice_morphine": {
       "textures": "textures/items/vice_morphine"
     },
+    "vice_white_monster": {
+      "textures": "textures/items/vice_white_monster"
+    },
+    "vice_crack": {
+      "textures": "textures/items/vice_crack"
+    },
+    "vice_meth": {
+      "textures": "textures/items/vice_meth"
+    },
+    "vice_heroin": {
+      "textures": "textures/items/vice_heroin"
+    },
     "vice_narcaine": {
       "textures": "textures/items/vice_narcaine"
     },

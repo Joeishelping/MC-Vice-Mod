@@ -1,0 +1,22 @@
+{
+  "format_version": "1.16.100",
+  "minecraft:fog_settings": {
+    "description": {
+      "identifier": "vice:haze_cyan_4"
+    },
+    "distance": {
+      "air": {
+        "fog_start": 0,
+        "fog_end": 99.8,
+        "fog_color": "#5fe0ff",
+        "render_distance_type": "fixed"
+      },
+      "weather": {
+        "fog_start": 0,
+        "fog_end": 99.8,
+        "fog_color": "#5fe0ff",
+        "render_distance_type": "fixed"
+      }
+    }
+  }
+}

@@ -46,7 +46,12 @@ ITEMS = {
     "poppy_seeds":   ("Opium Poppy Seeds", None, 0, None, 64, "poppy_plant"),
     "coffee_beans":  ("Coffee Beans", None, 0, None, 64, "coffee_plant"),
     "tea_leaves":    ("Tea Leaves", None, 0, None, 64, "tea_plant"),
+    "white_monster": ("White Monster", "drink", 1.4, None, 16, "white_monster_block"),
+    "crack":     ("Crack", "drink", 1.4, None, 16, "crack_block"),
+    "meth":      ("Meth", "drink", 1.8, None, 16, "meth_block"),
+    "heroin":    ("Heroin", "eat", 1.0, None, 16, "heroin_block"),
 }
+NUTRITION = {"coffee": (2, 0.3), "tea": (2, 0.4), "white_monster": (1, 0.2), "beer": (1, 0.1), "wine": (1, 0.1)}
 GROUP = "vice:vices"                  # the collapsible "VICES" group in the creative inventory
 SOIL = ["minecraft:grass_block", "minecraft:dirt", "minecraft:coarse_dirt", "minecraft:podzol", "minecraft:farmland",
         "minecraft:moss_block", "minecraft:rooted_dirt", "minecraft:mud"]
@@ -66,6 +71,10 @@ BLOCKS = {
     "wine_block":      ("cross", 11, "vice_wine", "vice:consumable", "wine"),
     "pipe_block":      ("flat", 10, "vice_pipe", "vice:reusable", "pipe"),
     "morphine_block":  ("flat", 9, "vice_morphine", "vice:consumable", "morphine"),
+    "white_monster_block": ("cross", 8, "vice_white_monster", "vice:consumable", "white_monster"),
+    "crack_block":     ("flat", 7, "vice_crack", "vice:consumable", "crack"),
+    "meth_block":      ("flat", 8, "vice_meth", "vice:consumable", "meth"),
+    "heroin_block":    ("flat", 9, "vice_heroin", "vice:consumable", "heroin"),
     "narcaine_block":  ("cross", 8, "vice_narcaine", "vice:consumable", "narcaine"),
     "cigarette_block": ("flat", 9, "vice_cigarette", "vice:consumable", "cigarette"),
     "cigar_block":     ("flat", 11, "vice_cigar", "vice:consumable", "cigar"),
@@ -105,6 +114,10 @@ RECIPES = [(k, ing, n, k) for k, (ing, n) in {
     "tobacco_seeds": (["wheat_seeds", "dried_kelp"], 2),
     "coffee_beans": (["cocoa_beans", "bone_meal"], 2),
     "tea_leaves": (["oak_leaves", "bone_meal"], 1),
+    "white_monster": (["iron_nugget", "sugar", "sugar", "vice:coffee_beans"], 2),
+    "crack": (["vice:cocaine", "bone_meal"], 2),
+    "meth": (["glass_bottle", "redstone", "sugar", "glowstone_dust"], 2),
+    "heroin": (["vice:opium", "vice:opium", "glass_bottle", "iron_nugget"], 2),
 }.items()] + [
     ("cigarette_tobacco", ["paper", "vice:tobacco_leaf"], 4, "cigarette"),
     ("cigar_tobacco", ["paper", "vice:tobacco_leaf", "vice:tobacco_leaf", "vice:tobacco_leaf"], 1, "cigar"),
@@ -116,6 +129,7 @@ HAZE = {
     "amber": "#f0a43a", "green": "#5fd35a", "magenta": "#e055d0", "ice": "#c4ecff", "purple": "#8a3cff",
     "orange": "#ff8a2a", "grey": "#5c5c6e", "red": "#8b0a0a",
     "gold": "#ffd27a", "mint": "#9ee6b0", "wine": "#9c1c4a",
+    "bone": "#fff1cc", "cyan": "#5fe0ff", "sepia": "#9a5a24", "sick": "#8f9a5a", "black": "#0a0a0c",
 }
 for i in range(12):                                   # rainbow for the shroom trip
     import colorsys
@@ -142,7 +156,8 @@ def item_json(iid, spec):
         "minecraft:tags": {"tags": ["vice:substance"]},
     }
     if anim:
-        food = {"nutrition": 0, "saturation_modifier": 0, "can_always_eat": True}
+        nut, sat = NUTRITION.get(iid, (0, 0))
+        food = {"nutrition": nut, "saturation_modifier": sat, "can_always_eat": True}
         if conv:
             food["using_converts_to"] = conv
         comps["minecraft:use_animation"] = anim
@@ -256,7 +271,7 @@ if __name__ == "__main__":
     dump(os.path.join(RP, "textures", "terrain_texture.json"),
          {"resource_pack_name": "vice_pack", "texture_name": "atlas.terrain", "padding": 8, "num_mip_levels": 4, "texture_data": terrain})
     # placing / breaking sounds
-    dump(os.path.join(RP, "blocks.json"), {"format_version": "1.21.40", **{f"vice:{b}": {"sound": "glass" if b in ("beer_block", "liquor_block", "bong_block", "wine_block", "coffee_block", "tea_block") else "grass"} for b in BLOCKS}})
+    dump(os.path.join(RP, "blocks.json"), {"format_version": "1.21.40", **{f"vice:{b}": {"sound": "glass" if b in ("beer_block", "liquor_block", "bong_block", "wine_block", "coffee_block", "tea_block", "white_monster_block") else "grass"} for b in BLOCKS}})
 
     drops = {spec[4] for spec in BLOCKS.values() if spec[4]}
     for d in drops:
@@ -270,62 +285,10 @@ if __name__ == "__main__":
             "ingredients": [{"item": i if ":" in i else f"minecraft:{i}"} for i in ing],
             "result": {"item": f"vice:{result}", "count": n}}})
 
-    # the prop an idle soldier holds (see "Soldiers" in main.js): a picture of the item that the script moves
-    # between his hand and mouth; it can't be hit, pushed, collided with or targeted, and never saves a thing
-    kinds = ["cigarette", "cigar", "joint", "pipe", "beer", "wine", "liquor", "coffee", "tea", "zynn"]
+    # (v1.4's soldier prop is gone: clear its files)
     shutil.rmtree(os.path.join(BP, "entities"), ignore_errors=True)
-    dump(os.path.join(BP, "entities", "prop.json"), {"format_version": FMT, "minecraft:entity": {
-        "description": {"identifier": "vice:prop", "is_spawnable": False, "is_summonable": True,
-                        "properties": {"vice:kind": {"type": "int", "range": [0, 15], "default": 0, "client_sync": True},
-                                       "vice:act": {"type": "int", "range": [0, 1], "default": 0, "client_sync": True}}},
-        "components": {
-            "minecraft:type_family": {"family": ["vice_prop", "inanimate"]},
-            "minecraft:collision_box": {"width": 0.01, "height": 0.01},
-            "minecraft:health": {"value": 1, "max": 1},
-            "minecraft:damage_sensor": {"triggers": {"cause": "all", "deals_damage": "no"}},
-            "minecraft:physics": {"has_gravity": False, "has_collision": False},
-            "minecraft:pushable": {"is_pushable": False, "is_pushable_by_piston": False},
-            "minecraft:knockback_resistance": {"value": 1},
-            "minecraft:fire_immune": {},
-            "minecraft:breathable": {"breathes_water": True, "breathes_air": True},
-        }}})
     for sub in ("entity", "render_controllers", "animations", "animation_controllers"):
         shutil.rmtree(os.path.join(RP, sub), ignore_errors=True)
-    dump(os.path.join(RP, "entity", "prop.entity.json"), {"format_version": "1.10.0", "minecraft:client_entity": {"description": {
-        "identifier": "vice:prop",
-        "materials": {"default": "entity_alphatest"},
-        "textures": {k: f"textures/items/vice_{k}" for k in kinds},
-        "geometry": {"default": "geometry.vice_prop"},
-        "animations": {"size": "animation.vice_prop.size", "tilt": "animation.vice_prop.tilt",
-                       "tilting": "controller.animation.vice_prop.tilt"},
-        "scripts": {"animate": ["size", "tilting"]},
-        "render_controllers": ["controller.render.vice_prop"]}}})
-    dump(os.path.join(RP, "render_controllers", "prop.render_controllers.json"), {"format_version": "1.8.0", "render_controllers": {
-        "controller.render.vice_prop": {
-            "arrays": {"textures": {"Array.kinds": [f"Texture.{k}" for k in kinds]}},
-            "geometry": "Geometry.default", "materials": [{"*": "Material.default"}],
-            "textures": ["Array.kinds[q.property('vice:kind')]"]}}})
-    plane = {"uv": [0, 0], "uv_size": [16, 16]}
-    flip = {"uv": [16, 0], "uv_size": [-16, 16]}
-    dump(os.path.join(RP, "models", "entity", "prop.geo.json"), {"format_version": "1.12.0", "minecraft:geometry": [{
-        "description": {"identifier": "geometry.vice_prop", "texture_width": 16, "texture_height": 16,
-                        "visible_bounds_width": 1, "visible_bounds_height": 1, "visible_bounds_offset": [0, 0, 0]},
-        "bones": [{"name": "item", "pivot": [0, 0, 0], "cubes": [         # two crossed pictures: seen from any side
-            {"origin": [-4, -4, 0], "size": [8, 8, 0], "uv": {"north": plane, "south": flip}},
-            {"origin": [0, -4, -4], "size": [0, 8, 8], "uv": {"east": plane, "west": flip}}]}]}]})
-    k = "q.property('vice:kind')"
-    dump(os.path.join(RP, "animations", "prop.animation.json"), {"format_version": "1.8.0", "animations": {
-        # smokes and the tin are small, cups middling, bottles biggest
-        "animation.vice_prop.size": {"loop": True, "bones": {"item": {
-            "scale": f"{k} <= 2 || {k} == 9 ? 0.55 : ({k} == 3 || {k} >= 7 ? 0.7 : 0.9)"}}},
-        # tipped up to drink
-        "animation.vice_prop.tilt": {"loop": "hold_on_last_frame", "animation_length": 0.4, "bones": {"item": {
-            "rotation": {"0.0": [0, 0, 0], "0.4": [-55, 0, 0]}}}},
-    }})
-    dump(os.path.join(RP, "animation_controllers", "prop.animation_controllers.json"), {"format_version": "1.10.0", "animation_controllers": {
-        "controller.animation.vice_prop.tilt": {"initial_state": "level", "states": {
-            "level": {"transitions": [{"tipped": "q.property('vice:act') == 1"}], "blend_transition": 0.3},
-            "tipped": {"animations": ["tilt"], "transitions": [{"level": "q.property('vice:act') == 0"}], "blend_transition": 0.3}}}}})
 
     # one collapsible "VICES" group in the creative inventory (Items tab), like the vanilla Stone group
     shutil.rmtree(os.path.join(BP, "item_catalog"), ignore_errors=True)
