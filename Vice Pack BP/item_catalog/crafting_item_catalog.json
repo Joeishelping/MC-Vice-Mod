@@ -62,10 +62,6 @@
               "vice:coffee_machine",
               "vice:beer_keg",
               "vice:ashtray",
-              "vice:bar_counter",
-              "vice:liquor_shelf",
-              "vice:neon_sign",
-              "vice:pool_table",
               "vice:bar_stool",
               "vice:hookah"
             ]

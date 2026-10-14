@@ -260,8 +260,6 @@ const kg = place(44, "vice:beer_keg");
 inv[0] = new ItemStack("vice:beer", 1); station(kg);
 inv[0] = undefined; m0 = LOG.length; station(kg);
 check("keg: pour in, drink from the tap", LOG.slice(m0).some((l) => l[0] === "bar" && l[1].includes("Straight from the tap")) && LOG.slice(m0).some((l) => l[0] === "effect" && l[1] === "strength"));
-const pt = place(46, "vice:pool_table"); m0 = LOG.length; station(pt);
-check("pool: clack", LOG.slice(m0).some((l) => l[0] === "sound" && l[1] === "vice.clack"));
 const stool = place(48, "vice:bar_stool"); station(stool);
 check("stool: sit", LOG.some((l) => l[0] === "spawn" && l[1] === "vice:seat") && LOG.some((l) => l[0] === "ride"));
 const hk = place(50, "vice:hookah");

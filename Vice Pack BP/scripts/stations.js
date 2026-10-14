@@ -12,7 +12,6 @@
 //   Coffee Machine  a bowl + ground coffee = coffee. No fire, no water.
 //   Beer Keg        pour beer in (up to 16), fill bottles from the tap, or drink straight from it.
 //   Ashtray         a smoke you finish near one ends up in it (it fills up); use it to empty it.
-//   Pool Table      take a shot.
 //   Bar Stool       sit on it.
 //   Hookah          load it with cured tobacco or weed (8 puffs); anyone can take a puff.
 // What's inside a station is kept in a world dynamic property per block ("vice:stn:<dim>:<x>,<y>,<z>").
@@ -258,13 +257,6 @@ system.run(() => stubbers.push((p) => {
   }
   return false;
 }));
-function pool(p, b) {
-  sound(p, "vice.clack", 1, rand(0.9, 1.1), top(b));
-  const drunk = st(p).drunk;
-  const lines = drunk >= 4 ? ["§7You miss the cue ball entirely.", "§7You hit the wrong ball. Twice.", "§7Was that... your ball?"]
-    : ["§aNice shot!", "§7Scratch.", "§aEight ball, corner pocket.", "§7Clean miss.", "§aTwo in one!"];
-  bar(lines[Math.floor(Math.random() * lines.length)], p);
-}
 const seats = new Map();                               // seat entity id -> stool block location
 function stool(p, b) {
   try { if (p.getComponent("minecraft:riding")?.entityRidingOn) return; } catch {}
@@ -297,7 +289,7 @@ function hookah(p, b) {
 const HANDLERS = {
   "vice:brew_barrel": barrel, "vice:still": still, "vice:drying_rack": rack, "vice:lab_table": lab,
   "vice:coffee_grinder": grinder, "vice:kettle": kettle, "vice:coffee_machine": coffeeMachine, "vice:beer_keg": keg,
-  "vice:ashtray": ashtray, "vice:pool_table": pool, "vice:bar_stool": stool, "vice:hookah": hookah,
+  "vice:ashtray": ashtray, "vice:bar_stool": stool, "vice:hookah": hookah,
 };
 const busyUse = new Map();
 system.beforeEvents.startup.subscribe(({ blockComponentRegistry: reg }) => {

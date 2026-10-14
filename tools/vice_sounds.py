@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Synthesises Vice Pack's own sound effects (lighter flick, can crack, pour, cough, sniff, bong bubbles, exhale,
-pill rattle, kettle whistle, grinder, pool clack) into Vice Pack RP/sounds/vice/*.ogg, and writes
+pill rattle, kettle whistle, grinder) into Vice Pack RP/sounds/vice/*.ogg, and writes
 sound_definitions.json. Needs numpy + soundfile (pip install numpy soundfile).
 
 Run: python3 tools/vice_sounds.py
@@ -153,19 +153,10 @@ def grind():
     return norm((n * crank * 0.5 + band(crunch, 800, 8000) * 0.8) * env(len(tt), 0.05, 1.0, 1.0))
 
 
-def clack():
-    out = np.zeros(int(SR * 0.6))
-    for at, g in ((0.0, 1.0), (0.18, 0.6), (0.27, 0.35)):
-        tt = t(0.05)
-        k = (np.sin(2 * np.pi * 2900 * tt) + 0.6 * np.sin(2 * np.pi * 4400 * tt)) * env(len(tt), 0.0003, 0.008)
-        place(out, k * g, at)
-    return norm(out)
-
-
 SOUNDS = {
     "lighter": (lighter, 0.8), "can_open": (can_open, 0.9), "pour": (pour, 0.8), "cough": (cough, 0.9),
     "sniff": (sniff, 0.9), "bubble": (bubble, 0.8), "exhale": (exhale, 0.6), "pill": (pill, 0.8),
-    "whistle": (whistle, 0.7), "grind": (grind, 0.8), "clack": (clack, 0.9),
+    "whistle": (whistle, 0.7), "grind": (grind, 0.8),
 }
 
 if __name__ == "__main__":

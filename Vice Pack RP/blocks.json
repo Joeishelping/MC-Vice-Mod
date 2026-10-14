@@ -132,18 +132,6 @@
   "vice:ashtray": {
     "sound": "stone"
   },
-  "vice:bar_counter": {
-    "sound": "wood"
-  },
-  "vice:liquor_shelf": {
-    "sound": "wood"
-  },
-  "vice:neon_sign": {
-    "sound": "glass"
-  },
-  "vice:pool_table": {
-    "sound": "wood"
-  },
   "vice:bar_stool": {
     "sound": "metal"
   },

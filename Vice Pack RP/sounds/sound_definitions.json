@@ -90,15 +90,6 @@
           "volume": 0.8
         }
       ]
-    },
-    "vice.clack": {
-      "category": "player",
-      "sounds": [
-        {
-          "name": "sounds/vice/clack",
-          "volume": 0.9
-        }
-      ]
     }
   }
 }

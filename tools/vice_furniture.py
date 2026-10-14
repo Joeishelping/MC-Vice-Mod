@@ -54,21 +54,6 @@ def legs(mat, x0, z0, x1, z1, h, w=1):
     return [(mat, (x, 0, z), (w, h, w)) for x in (x0, x1) for z in (z0, z1)]
 
 
-GLYPHS = {"O": ["111", "101", "101", "101", "111"], "P": ["111", "101", "111", "100", "100"],
-          "E": ["111", "100", "110", "100", "111"], "N": ["101", "111", "111", "111", "101"]}
-
-
-def neon_text(word, x0, y_top, mat):
-    out = []
-    for i, ch in enumerate(word):
-        for row, bits in enumerate(GLYPHS[ch]):
-            for col, b in enumerate(bits):
-                if b == "1":
-                    x = x0 + i * 4 + col
-                    out.append((mat, (-(x + 1), y_top - row, -1.0), (1, 1, 0.5)))   # mirrored: reads right from the front
-    return out
-
-
 FURNITURE = {
     "brew_barrel": dict(name="Brew Barrel", sound="wood", states={"vice:stage": [0, 1, 2]}, recipe=["barrel", "iron_ingot", "iron_ingot"], boxes=[
         ("oak", (-6, 0, -6), (12, 14, 12)), ("iron", (-6.5, 2, -6.5), (13, 1, 13)), ("iron", (-6.5, 11, -6.5), (13, 1, 13)),
@@ -112,30 +97,6 @@ FURNITURE = {
         ("white", (-1.8, 1.1, -1), (2, 0.5, 0.5), "b0"), ("orange", (-2.2, 1.1, -1), (0.5, 0.5, 0.5), "b0"),
         ("white", (0, 1.1, 0.5), (0.5, 0.5, 2), "b1"), ("orange", (0, 1.1, 0), (0.5, 0.5, 0.5), "b1"),
         ("white", (-0.5, 1.1, -2), (2, 0.5, 0.5), "b2"), ("orange", (1.5, 1.1, -2), (0.5, 0.5, 0.5), "b2")]),
-    "bar_counter": dict(name="Bar Counter", sound="wood", recipe=["dark_oak_planks", "dark_oak_planks", "dark_oak_planks", "oak_planks"],
-                        count=2, full=True, boxes=[
-        ("oak_dark", (-8, 0, -6), (16, 14, 14)), ("oak", (-8, 14, -8), (16, 2, 16)), ("black", (-8, 0, -6.5), (16, 1, 0.5)),
-        ("brass", (-8, 3, -8), (16, 1, 1))]),
-    "liquor_shelf": dict(name="Liquor Shelf", sound="wood", recipe=["oak_planks", "oak_planks", "glass_bottle", "glass_bottle"], boxes=[
-        ("oak_dark", (-8, 0, 5), (16, 16, 3)), ("oak_dark", (-8, 0, 1), (1, 16, 4)), ("oak_dark", (7, 0, 1), (1, 16, 4)),
-        ("oak", (-8, 0, 1), (16, 1, 4)), ("oak", (-8, 5, 1), (16, 1, 4)), ("oak", (-8, 11, 1), (16, 1, 4)),
-        ("bottle_green", (-6, 1, 2), (2, 4, 2)), ("bottle_brown", (-3, 1, 2), (2, 3, 2)), ("bottle_clear", (0, 1, 2), (2, 4, 2)),
-        ("amber", (3, 1, 2), (2, 3, 2)), ("bottle_brown", (-5, 6, 2), (2, 4, 2)), ("purple", (-2, 6, 2), (2, 3, 2)),
-        ("bottle_green", (1, 6, 2), (2, 4, 2)), ("bottle_clear", (4, 6, 2), (2, 4, 2)), ("amber", (-4, 12, 2), (2, 3, 2)),
-        ("bottle_clear", (2, 12, 2), (2, 4, 2))]),
-    "neon_sign": dict(name="Neon Sign", sound="glass", light=12, recipe=["glowstone_dust", "redstone", "glass_pane", "pink_dye"], boxes=[
-        ("black", (-8, 2, -0.5), (16, 8, 1)), ("iron_dark", (-6, 0, -1.5), (1, 2, 3)), ("iron_dark", (5, 0, -1.5), (1, 2, 3)),
-        ("neon_blue", (-8, 9.5, -0.8), (16, 0.5, 0.3)), ("neon_blue", (-8, 2, -0.8), (16, 0.5, 0.3))]
-        + neon_text("OPEN", -7.5, 8, "neon_pink")),
-    "pool_table": dict(name="Pool Table", sound="wood", full=True, recipe=["green_wool", "oak_planks", "oak_planks", "stick"], boxes=[
-        ("oak_dark", (-8, 7, -8), (16, 2, 16)), ("felt", (-8, 9, -8), (16, 1, 16)),
-        ("oak_dark", (-8, 10, -8), (16, 1.5, 1.5)), ("oak_dark", (-8, 10, 6.5), (16, 1.5, 1.5)),
-        ("oak_dark", (-8, 10, -6.5), (1.5, 1.5, 13)), ("oak_dark", (6.5, 10, -6.5), (1.5, 1.5, 13))]
-        + legs("oak_dark", -7, -7, 5, 5, 7, 2) + [
-        ("black", (-6.5, 10, -6.5), (1, 0.1, 1)), ("black", (5.5, 10, -6.5), (1, 0.1, 1)), ("black", (-6.5, 10, 5.5), (1, 0.1, 1)),
-        ("black", (5.5, 10, 5.5), (1, 0.1, 1)), ("white", (-3, 10, -1), (1, 1, 1)), ("red", (2, 10, 1), (1, 1, 1)),
-        ("yellow", (3, 10, -2), (1, 1, 1)), ("black", (1, 10, 0), (1, 1, 1)), ("neon_blue", (4, 10, 2), (1, 1, 1)),
-        ("oak", (-5, 10, 3), (8, 0.5, 0.5))]),
     "bar_stool": dict(name="Bar Stool", sound="metal", recipe=["oak_planks", "stick", "stick", "red_wool"], boxes=[
         ("leather", (-4, 10, -4), (8, 2, 8)), ("iron", (-1, 1, -1), (2, 9, 2)), ("iron_dark", (-3.5, 0, -3.5), (7, 1, 7))]
         + ring("iron", 5, 3, 0.5)),
@@ -156,7 +117,7 @@ VIS = {
 }
 # interactive ones (the script handles them through the vice:station component)
 STATIONS = {"brew_barrel", "still", "drying_rack", "lab_table", "coffee_grinder", "kettle", "coffee_machine", "beer_keg",
-            "ashtray", "pool_table", "bar_stool", "hookah"}
+            "ashtray", "bar_stool", "hookah"}
 
 
 def geometry(fid):

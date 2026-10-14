@@ -7,7 +7,7 @@ the world. Grow your own weed, tobacco, opium poppies, coffee and tea; brew, dis
 bar and lab. Habits form, withdrawal hurts, bad combinations and overdoses can kill you. It has nothing to do with any
 other add-on.
 
-**Install:** open `Vice_Pack_v2_0.mcaddon`, then turn on both packs (Behavior + Resource) for the world.
+**Install:** open `Vice_Pack_v2_1.mcaddon`, then turn on both packs (Behavior + Resource) for the world.
 Needs Minecraft Bedrock 1.21.90 or newer. Everything is in one collapsible **VICES** group in the creative inventory
 (Items tab). Craft a **Vice Guide** (book + sugar) for the in-game guide, your status and the settings.
 
@@ -54,8 +54,6 @@ Breaking grass sometimes drops a seed.
 | **Hookah** | glass bottle + iron ingot + string + copper ingot | Load with cured tobacco (shisha) or weed: 8 puffs, anyone can take one. Bubbles and clouds |
 | **Ashtray** | 2 bricks | Finish a smoke near one and the butt goes in (it fills up); use it to empty it |
 | **Bar Stool** | oak planks + 2 sticks + red wool | Sit on it |
-| **Pool Table** | green wool + 2 oak planks + stick | Take a shot (good luck if you're drunk) |
-| **Bar Counter** (×2), **Liquor Shelf**, **Neon "OPEN" Sign** (gives light) | see the recipe book | Decoration |
 
 ## Items
 
@@ -117,7 +115,7 @@ You get a red **⚠** warning when you mix:
   each earn a Recovery Chip; using again after a day clean is a relapse.
 - **Drunk talk:** your chat comes out slurred. *This only works if the game lets add-on scripts read chat (it's an
   experimental feature in some versions); otherwise chat is left alone.*
-- **Sounds:** the lighter, can, pour, cough, sniff, bubbles, exhale, pills, kettle whistle, grinder and pool balls are
+- **Sounds:** the lighter, can, pour, cough, sniff, bubbles, exhale, pills, kettle whistle and grinder are
   the pack's own (made by `tools/vice_sounds.py`).
 - **Colour haze** for every high, easing in and out; only blackouts go fully black.
 
@@ -139,7 +137,7 @@ habits and withdrawal, hallucinations, slurred chat. They're saved with the worl
 | `tools/vice_textures.py` | Item icons, block textures, pack icon |
 | `tools/vice_sounds.py` | Synthesises the sound effects (needs numpy + soundfile) |
 | `tools/build_vice.py` | Builds `Vice_Pack_vX_Y.mcaddon` |
-| `tests/vice/run.mjs` | Headless check against a mock of the API (117 checks: every item, station, combo, overdose, habit, sleep, recovery, multiplayer, settings) |
+| `tests/vice/run.mjs` | Headless check against a mock of the API (116 checks: every item, station, combo, overdose, habit, sleep, recovery, multiplayer, settings) |
 
 After changing something: `python3 tools/vice_data.py && python3 tools/vice_textures.py && node tests/vice/run.mjs && python3 tools/build_vice.py`
 
