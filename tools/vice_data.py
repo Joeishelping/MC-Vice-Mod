@@ -4,7 +4,9 @@
 Run: python3 tools/vice_data.py   (then tools/vice_textures.py for the PNGs, tools/build_vice.py for the .mcaddon)
 The tables below are the single place to add or change a substance's item, block or recipe.
 """
-import json, os, shutil
+import json, os, shutil, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import vice_furniture as furn
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BP = os.path.join(root, "Vice Pack BP")
@@ -50,8 +52,24 @@ ITEMS = {
     "crack":     ("Crack", "drink", 1.4, None, 16, "crack_block"),
     "meth":      ("Meth", "drink", 1.8, None, 16, "meth_block"),
     "heroin":    ("Heroin", "eat", 1.0, None, 16, "heroin_block"),
+    "lean":      ("Lean", "drink", 2.0, None, 16, "lean_block"),
+    "lsd":       ("LSD Tab", "eat", 0.8, None, 64, "lsd_block"),
+    "xanax":     ("Xanax", "eat", 0.8, None, 64, "xanax_block"),
+    "ecstasy":   ("Ecstasy", "eat", 0.8, None, 64, "ecstasy_block"),
+    "adderall":  ("Adderall", "eat", 0.8, None, 64, "adderall_block"),
+    "vape":      ("Vape", "drink", 1.6, "vice:vape", 1, "vape_block"),
+    "vape_juice": ("Vape Juice", None, 0, None, 16, None),
+    "moonshine": ("Moonshine", "drink", 1.6, "minecraft:glass_bottle", 16, "moonshine_block"),
+    "kava":      ("Kava", "drink", 1.6, "minecraft:bowl", 16, "kava_block"),
+    "shot":      ("Shot", "drink", 0.6, None, 16, "shot_block"),
+    "cured_tobacco": ("Cured Tobacco", None, 0, None, 64, None),
+    "ground_coffee": ("Ground Coffee", None, 0, None, 64, None),
+    "nicotine_patch": ("Nicotine Patch", "eat", 0.6, None, 16, None),
+    "recovery_chip": ("Recovery Chip", None, 0, None, 64, None),
+    "guide":     ("Vice Guide & Settings", None, 0, None, 1, None),
 }
-NUTRITION = {"coffee": (2, 0.3), "tea": (2, 0.4), "white_monster": (1, 0.2), "beer": (1, 0.1), "wine": (1, 0.1)}
+NUTRITION = {"coffee": (2, 0.3), "tea": (2, 0.4), "white_monster": (1, 0.2), "beer": (1, 0.1), "wine": (1, 0.1),
+             "kava": (2, 0.3)}
 GROUP = "vice:vices"                  # the collapsible "VICES" group in the creative inventory
 SOIL = ["minecraft:grass_block", "minecraft:dirt", "minecraft:coarse_dirt", "minecraft:podzol", "minecraft:farmland",
         "minecraft:moss_block", "minecraft:rooted_dirt", "minecraft:mud"]
@@ -75,6 +93,15 @@ BLOCKS = {
     "crack_block":     ("flat", 7, "vice_crack", "vice:consumable", "crack"),
     "meth_block":      ("flat", 8, "vice_meth", "vice:consumable", "meth"),
     "heroin_block":    ("flat", 9, "vice_heroin", "vice:consumable", "heroin"),
+    "lean_block":      ("cross", 8, "vice_lean", "vice:consumable", "lean"),
+    "lsd_block":       ("flat", 6, "vice_lsd", "vice:consumable", "lsd"),
+    "xanax_block":     ("flat", 6, "vice_xanax", "vice:consumable", "xanax"),
+    "ecstasy_block":   ("flat", 5, "vice_ecstasy", "vice:consumable", "ecstasy"),
+    "adderall_block":  ("flat", 5, "vice_adderall", "vice:consumable", "adderall"),
+    "vape_block":      ("flat", 8, "vice_vape", "vice:reusable", "vape"),
+    "moonshine_block": ("cross", 9, "vice_moonshine", "vice:consumable", "moonshine"),
+    "kava_block":      ("cross", 8, "vice_kava", "vice:consumable", "kava"),
+    "shot_block":      ("cross", 5, "vice_shot", "vice:consumable", "shot"),
     "narcaine_block":  ("cross", 8, "vice_narcaine", "vice:consumable", "narcaine"),
     "cigarette_block": ("flat", 9, "vice_cigarette", "vice:consumable", "cigarette"),
     "cigar_block":     ("flat", 11, "vice_cigar", "vice:consumable", "cigar"),
@@ -91,23 +118,19 @@ CROPS = {b for b in BLOCKS if b.endswith("_plant")}
 
 # ---------------------------------------------------------------- recipes (shapeless, crafting table)
 # (recipe name, ingredients, count, result: defaults to the recipe name)
+# Beer and wine come from the Brew Barrel, liquor and moonshine from the Still, coffee and tea from the Kettle or
+# Coffee Machine, crack/meth/heroin/ketamine from the Lab Table, cured tobacco from the Drying Rack (see stations.js).
 RECIPES = [(k, ing, n, k) for k, (ing, n) in {
-    "beer": (["glass_bottle", "wheat", "wheat", "sugar"], 1),
-    "liquor": (["glass_bottle", "potato", "potato", "potato", "sugar"], 1),
     "cigarette": (["paper", "dried_kelp"], 4),
     "cigar": (["paper", "dried_kelp", "dried_kelp", "dried_kelp"], 1),
     "cocaine": (["paper", "sugar", "glowstone_dust"], 2),
-    "ketamine": (["glass_bottle", "sugar", "quartz"], 2),
     "opium": (["poppy", "poppy", "poppy", "brown_mushroom"], 1),
     "weed": (["fern", "bone_meal"], 1),
     "joint": (["paper", "vice:weed"], 1),
     "bong": (["glass", "glass", "glass", "glass_bottle"], 1),
     "shrooms": (["brown_mushroom", "red_mushroom", "glowstone_dust"], 2),
     "narcaine": (["glass_bottle", "glistering_melon_slice"], 2),
-    "zynn": (["vice:tobacco_leaf", "paper", "iron_nugget"], 4),
-    "coffee": (["bowl", "vice:coffee_beans", "vice:coffee_beans", "sugar"], 1),
-    "tea": (["bowl", "vice:tea_leaves", "vice:tea_leaves"], 1),
-    "wine": (["glass_bottle", "sweet_berries", "sweet_berries", "sweet_berries"], 1),
+    "zynn": (["vice:cured_tobacco", "paper", "iron_nugget"], 4),
     "pipe": (["bowl", "stick"], 1),
     "morphine": (["vice:opium", "glass_bottle", "iron_nugget"], 2),
     "poppy_seeds": (["poppy"], 2),
@@ -115,13 +138,22 @@ RECIPES = [(k, ing, n, k) for k, (ing, n) in {
     "coffee_beans": (["cocoa_beans", "bone_meal"], 2),
     "tea_leaves": (["oak_leaves", "bone_meal"], 1),
     "white_monster": (["iron_nugget", "sugar", "sugar", "vice:coffee_beans"], 2),
-    "crack": (["vice:cocaine", "bone_meal"], 2),
-    "meth": (["glass_bottle", "redstone", "sugar", "glowstone_dust"], 2),
-    "heroin": (["vice:opium", "vice:opium", "glass_bottle", "iron_nugget"], 2),
+    "lean": (["vice:opium", "sugar", "sugar", "glass_bottle", "purple_dye"], 1),
+    "lsd": (["paper", "wheat", "fermented_spider_eye"], 4),
+    "xanax": (["white_dye", "sugar", "quartz"], 4),
+    "ecstasy": (["pink_dye", "sugar", "glowstone_dust"], 2),
+    "adderall": (["orange_dye", "sugar", "redstone"], 4),
+    "vape": (["iron_ingot", "redstone", "glass_pane"], 1),
+    "vape_juice": (["glass_bottle", "vice:cured_tobacco", "sugar", "sweet_berries"], 2),
+    "kava": (["bowl", "hanging_roots", "hanging_roots"], 1),
+    "nicotine_patch": (["paper", "vice:cured_tobacco", "slime_ball"], 3),
+    "guide": (["book", "sugar"], 1),
 }.items()] + [
-    ("cigarette_tobacco", ["paper", "vice:tobacco_leaf"], 4, "cigarette"),
-    ("cigar_tobacco", ["paper", "vice:tobacco_leaf", "vice:tobacco_leaf", "vice:tobacco_leaf"], 1, "cigar"),
-]
+    ("cigarette_tobacco", ["paper", "vice:cured_tobacco"], 4, "cigarette"),
+    ("cigar_tobacco", ["paper", "vice:cured_tobacco", "vice:cured_tobacco", "vice:cured_tobacco"], 1, "cigar"),
+    ("shot_liquor", ["vice:liquor", "glass_pane", "glass_pane", "glass_pane"], 3, "shot"),
+    ("shot_moonshine", ["vice:moonshine", "glass_pane", "glass_pane", "glass_pane"], 3, "shot"),
+] + [(f, spec["recipe"], spec.get("count", 1), f) for f, spec in furn.FURNITURE.items()]
 
 # ---------------------------------------------------------------- colour haze (fog), see hazeTick in main.js
 HAZE_LEVELS = 8
@@ -130,6 +162,7 @@ HAZE = {
     "orange": "#ff8a2a", "grey": "#5c5c6e", "red": "#8b0a0a",
     "gold": "#ffd27a", "mint": "#9ee6b0", "wine": "#9c1c4a",
     "bone": "#fff1cc", "cyan": "#5fe0ff", "sepia": "#9a5a24", "sick": "#8f9a5a", "black": "#0a0a0c",
+    "pink": "#ff7ad8", "pale": "#d8dce8", "earth": "#8a6a3a",
 }
 for i in range(12):                                   # rainbow for the shroom trip
     import colorsys
@@ -163,7 +196,10 @@ def item_json(iid, spec):
         comps["minecraft:use_animation"] = anim
         comps["minecraft:use_modifiers"] = {"use_duration": secs, "movement_modifier": 0.35}
         comps["minecraft:food"] = food
-    elif block:
+    if iid == "guide":
+        comps["vice:guide"] = {}
+        comps["minecraft:glint"] = True
+    if block and not anim:
         placer = {"block": f"vice:{block}", "replace_block_item": False}
         if block in CROPS:
             placer["use_on"] = SOIL
@@ -237,6 +273,38 @@ def block_json(bid, spec):
     return {"format_version": FMT, "minecraft:block": out}
 
 
+FURNITURE_ROT = (("north", 0), ("west", 90), ("south", 180), ("east", 270))   # same turn as the lying-down items
+
+
+def furniture_json(fid):
+    spec = furn.FURNITURE[fid]
+    ident, _ = furn.geometry(fid)
+    box = furn.bounds(fid)
+    desc = {"identifier": f"vice:{fid}", "menu_category": {"category": "items", "group": GROUP},
+            "traits": {"minecraft:placement_direction": {"enabled_states": ["minecraft:cardinal_direction"]}}}
+    if spec.get("states"):
+        desc["states"] = spec["states"]
+    geo = {"identifier": ident}
+    if fid in furn.VIS:
+        geo["bone_visibility"] = furn.VIS[fid]
+    comps = {
+        "minecraft:geometry": geo,
+        "minecraft:material_instances": {"*": {"texture": "vice_furniture", "render_method": "alpha_test"}},
+        "minecraft:collision_box": True if spec.get("full") else box,
+        "minecraft:selection_box": True if spec.get("full") else box,
+        "minecraft:destructible_by_mining": {"seconds_to_destroy": 0.8},
+        "minecraft:destructible_by_explosion": {"explosion_resistance": 3},
+        "minecraft:light_dampening": 15 if spec.get("full") else 0,
+    }
+    if spec.get("light"):
+        comps["minecraft:light_emission"] = spec["light"]
+    if fid in furn.STATIONS:
+        comps["vice:station"] = {}
+    perms = [{"condition": f"q.block_state('minecraft:cardinal_direction') == '{d}'", "components": {
+        "minecraft:transformation": {"rotation": [0, r, 0]}}} for d, r in FURNITURE_ROT]
+    return {"format_version": FMT, "minecraft:block": {"description": desc, "components": comps, "permutations": perms}}
+
+
 if __name__ == "__main__":
     for sub in ("items", "blocks", "recipes", "loot_tables"):
         shutil.rmtree(os.path.join(BP, sub), ignore_errors=True)
@@ -266,12 +334,23 @@ if __name__ == "__main__":
                 terrain[f"{tex}_{n}"] = {"textures": f"textures/blocks/{tex}_{n}"}
         else:
             terrain[tex] = {"textures": f"textures/items/{tex}"}      # placed items reuse their icon
+    for fid, spec in furn.FURNITURE.items():
+        dump(os.path.join(BP, "blocks", f"{fid}.json"), furniture_json(fid))
+        ident, geo = furn.geometry(fid)
+        geos[ident] = geo
+    terrain["vice_furniture"] = {"textures": "textures/blocks/vice_furniture"}
+    from vice_textures import write_png, hexc
+    write_png(os.path.join(RP, "textures", "blocks", "vice_furniture.png"), furn.draw_sheet(hexc))
     for ident, geo in geos.items():
         dump(os.path.join(RP, "models", "blocks", ident.replace("geometry.", "") + ".geo.json"), geo)
     dump(os.path.join(RP, "textures", "terrain_texture.json"),
          {"resource_pack_name": "vice_pack", "texture_name": "atlas.terrain", "padding": 8, "num_mip_levels": 4, "texture_data": terrain})
     # placing / breaking sounds
-    dump(os.path.join(RP, "blocks.json"), {"format_version": "1.21.40", **{f"vice:{b}": {"sound": "glass" if b in ("beer_block", "liquor_block", "bong_block", "wine_block", "coffee_block", "tea_block", "white_monster_block") else "grass"} for b in BLOCKS}})
+    glassy = ("beer_block", "liquor_block", "bong_block", "wine_block", "coffee_block", "tea_block", "white_monster_block",
+              "moonshine_block", "shot_block", "lean_block")
+    dump(os.path.join(RP, "blocks.json"), {"format_version": "1.21.40",
+         **{f"vice:{b}": {"sound": "glass" if b in glassy else "grass"} for b in BLOCKS},
+         **{f"vice:{f}": {"sound": spec["sound"]} for f, spec in furn.FURNITURE.items()}})
 
     drops = {spec[4] for spec in BLOCKS.values() if spec[4]}
     for d in drops:
@@ -285,19 +364,43 @@ if __name__ == "__main__":
             "ingredients": [{"item": i if ":" in i else f"minecraft:{i}"} for i in ing],
             "result": {"item": f"vice:{result}", "count": n}}})
 
-    # (v1.4's soldier prop is gone: clear its files)
-    shutil.rmtree(os.path.join(BP, "entities"), ignore_errors=True)
+    # the invisible seat a player rides when sitting on a bar stool
+    for sub in ("entities",):
+        shutil.rmtree(os.path.join(BP, sub), ignore_errors=True)
     for sub in ("entity", "render_controllers", "animations", "animation_controllers"):
         shutil.rmtree(os.path.join(RP, sub), ignore_errors=True)
+    dump(os.path.join(BP, "entities", "seat.json"), {"format_version": FMT, "minecraft:entity": {
+        "description": {"identifier": "vice:seat", "is_spawnable": False, "is_summonable": True},
+        "components": {
+            "minecraft:type_family": {"family": ["vice_seat", "inanimate"]},
+            "minecraft:collision_box": {"width": 0.2, "height": 0.2},
+            "minecraft:health": {"value": 1, "max": 1},
+            "minecraft:damage_sensor": {"triggers": {"cause": "all", "deals_damage": "no"}},
+            "minecraft:physics": {"has_gravity": False, "has_collision": False},
+            "minecraft:pushable": {"is_pushable": False, "is_pushable_by_piston": False},
+            "minecraft:knockback_resistance": {"value": 1},
+            "minecraft:fire_immune": {},
+            "minecraft:rideable": {"seat_count": 1, "family_types": ["player"], "interact_text": "Sit", "pull_in_entities": False,
+                                   "seats": {"position": [0, 0.15, 0]}},
+        }}})
+    dump(os.path.join(RP, "entity", "seat.entity.json"), {"format_version": "1.10.0", "minecraft:client_entity": {"description": {
+        "identifier": "vice:seat", "materials": {"default": "entity_alphatest"},
+        "textures": {"default": "textures/blocks/vice_furniture"}, "geometry": {"default": "geometry.vice_seat"},
+        "render_controllers": ["controller.render.default"]}}})
+    dump(os.path.join(RP, "models", "entity", "seat.geo.json"), {"format_version": "1.12.0", "minecraft:geometry": [{
+        "description": {"identifier": "geometry.vice_seat", "texture_width": 32, "texture_height": 32},
+        "bones": [{"name": "root", "pivot": [0, 0, 0]}]}]})
 
     # one collapsible "VICES" group in the creative inventory (Items tab), like the vanilla Stone group
     shutil.rmtree(os.path.join(BP, "item_catalog"), ignore_errors=True)
     dump(os.path.join(BP, "item_catalog", "crafting_item_catalog.json"), {"format_version": "1.21.60", "minecraft:crafting_items_catalog": {
         "categories": [{"category_name": "items", "groups": [{
             "group_identifier": {"icon": "vice:beer", "name": GROUP},
-            "items": [f"vice:{i}" for i in ITEMS]}]}]}})
+            "items": [f"vice:{i}" for i in ITEMS] + [f"vice:{f}" for f in furn.FURNITURE]}]}]}})
     for pack in (BP, RP):
         with open(os.path.join(pack, "texts", "en_US.lang"), "w") as f:
             f.write("pack.name=Vice Pack\npack.description=Beer, liquor, smokes, weed, shrooms, coffee and drugs with effects\n"
-                    f"{GROUP}=VICES\nitemGroup.name.vices=VICES\n")
-    print(f"{len(ITEMS)} items, {len(BLOCKS)} blocks, {len(geos)} geometries, {len(RECIPES)} recipes, {len(HAZE) * HAZE_LEVELS} fogs")
+                    f"{GROUP}=VICES\nitemGroup.name.vices=VICES\n"
+                    + "".join(f"tile.vice:{fid}.name={spec['name']}\n" for fid, spec in furn.FURNITURE.items())
+                    + "entity.vice:seat.name=Seat\n")
+    print(f"{len(ITEMS)} items, {len(BLOCKS)} blocks, {len(furn.FURNITURE)} furniture, {len(geos)} geometries, {len(RECIPES)} recipes, {len(HAZE) * HAZE_LEVELS} fogs")

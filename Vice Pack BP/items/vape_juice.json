@@ -1,0 +1,28 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "vice:vape_juice",
+      "menu_category": {
+        "category": "items",
+        "group": "vice:vices"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "textures": {
+          "default": "vice_vape_juice"
+        }
+      },
+      "minecraft:display_name": {
+        "value": "Vape Juice"
+      },
+      "minecraft:max_stack_size": 16,
+      "minecraft:tags": {
+        "tags": [
+          "vice:substance"
+        ]
+      }
+    }
+  }
+}

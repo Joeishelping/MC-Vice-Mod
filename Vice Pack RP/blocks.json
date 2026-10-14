@@ -45,6 +45,33 @@
   "vice:heroin_block": {
     "sound": "grass"
   },
+  "vice:lean_block": {
+    "sound": "glass"
+  },
+  "vice:lsd_block": {
+    "sound": "grass"
+  },
+  "vice:xanax_block": {
+    "sound": "grass"
+  },
+  "vice:ecstasy_block": {
+    "sound": "grass"
+  },
+  "vice:adderall_block": {
+    "sound": "grass"
+  },
+  "vice:vape_block": {
+    "sound": "grass"
+  },
+  "vice:moonshine_block": {
+    "sound": "glass"
+  },
+  "vice:kava_block": {
+    "sound": "grass"
+  },
+  "vice:shot_block": {
+    "sound": "glass"
+  },
   "vice:narcaine_block": {
     "sound": "grass"
   },
@@ -77,5 +104,50 @@
   },
   "vice:tea_plant": {
     "sound": "grass"
+  },
+  "vice:brew_barrel": {
+    "sound": "wood"
+  },
+  "vice:still": {
+    "sound": "metal"
+  },
+  "vice:drying_rack": {
+    "sound": "wood"
+  },
+  "vice:lab_table": {
+    "sound": "metal"
+  },
+  "vice:coffee_grinder": {
+    "sound": "wood"
+  },
+  "vice:kettle": {
+    "sound": "metal"
+  },
+  "vice:coffee_machine": {
+    "sound": "metal"
+  },
+  "vice:beer_keg": {
+    "sound": "metal"
+  },
+  "vice:ashtray": {
+    "sound": "stone"
+  },
+  "vice:bar_counter": {
+    "sound": "wood"
+  },
+  "vice:liquor_shelf": {
+    "sound": "wood"
+  },
+  "vice:neon_sign": {
+    "sound": "glass"
+  },
+  "vice:pool_table": {
+    "sound": "wood"
+  },
+  "vice:bar_stool": {
+    "sound": "metal"
+  },
+  "vice:hookah": {
+    "sound": "glass"
   }
 }

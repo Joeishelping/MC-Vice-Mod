@@ -741,6 +741,247 @@ def syringe(liquid, cap):
     return outline(px)
 
 
+# ---------------------------------------------------------------- v2.0: lean, lsd, xanax, ecstasy, adderall, vape, ...
+def lean():
+    rows = [
+        "................",
+        "...wwwwwwwwww...",
+        "...wPPPPPPPPw...",
+        "...wpPPPPPPPw...",
+        "....wWWWWWWw....",
+        "....wWhWWWWw....",
+        "....wWhWWWWw....",
+        "....wWWWWWWw....",
+        "....wWWWWWWw....",
+        ".....wWWWWw.....",
+        ".....wWWWWw.....",
+        ".....wWWWWw.....",
+        ".....wWWWWw.....",
+        "......wwww......",
+        "................",
+        "................",
+    ]
+    return from_map(rows, {"w": hexc("#9a9a9a"), "W": hexc("#f4f4f2"), "h": hexc("#ffffff"),
+                           "P": hexc("#8a2ad0"), "p": hexc("#c070ff")})
+
+
+def lsd():
+    px = [[CLEAR] * 16 for _ in range(16)]
+    for y in range(3, 13):
+        for x in range(3, 13):
+            k = math.hypot(x - 7.5, y - 7.5)
+            r, g, b = __import__("colorsys").hsv_to_rgb((k / 7 + (x + y) / 40) % 1, 0.65, 1)
+            px[y][x] = (int(r * 255), int(g * 255), int(b * 255), 255)
+    for i in range(3, 13):
+        if i in (5, 8, 10):
+            for j in range(3, 13):
+                px[i][j] = hexc("#d8d0c0"); px[j][i] = hexc("#d8d0c0")
+    return outline(px, hexc("#6a5a4a"))
+
+
+def pill(colors, shape="bar", logo=None):
+    px = [[CLEAR] * 16 for _ in range(16)]
+    a, b = colors
+    for y in range(16):
+        for x in range(16):
+            if shape == "bar":
+                inside = 2 <= x <= 13 and 6 <= y <= 9 and not ((x in (2, 13)) and y in (6, 9))
+                if inside:
+                    px[y][x] = a if y < 8 else b
+            elif shape == "round":
+                if math.hypot(x + 0.5 - 8, y + 0.5 - 8) <= 5.2:
+                    px[y][x] = a if (x + y) < 16 else b
+            else:   # capsule, diagonal
+                d = abs((x - y)) / 1.414
+                along = (x + y) / 2
+                if d <= 2.4 and 3 <= along <= 12.5:
+                    px[y][x] = a if along < 7.8 else b
+    if shape == "bar":
+        for x in (5, 8, 11):
+            px[7][x] = px[8][x] = hexc("#b8b8b0")
+    if logo:
+        for x, y in logo:
+            px[y][x] = hexc("#ffffff")
+    return outline(px, hexc("#3a3a3a"))
+
+
+def vape():
+    def col(t, s):
+        if t < 0.15:
+            return hexc("#1a1a1a")                    # mouthpiece
+        if t < 0.3:
+            return hexc("#7fd0ff") if s < 0 else hexc("#4a9ad0")   # tank
+        if 0.6 < t < 0.64:
+            return hexc("#4fff9a")                    # light
+        return hexc("#5a5f66") if s < 0.2 else hexc("#3a3f46")
+    px = stick((13, 2.5), (3, 13.5), 2.8, col)
+    return outline(px)
+
+
+def bottle_small(liquid):
+    rows = [
+        "................",
+        "................",
+        "......kkk.......",
+        "......kkk.......",
+        ".......g........",
+        "......gLg.......",
+        ".....gLLLg......",
+        ".....gwwwg......",
+        ".....gwXwg......",
+        ".....gLLLg......",
+        ".....gLLLg......",
+        "......ggg.......",
+        "................",
+        "................",
+        "................",
+        "................",
+    ]
+    return from_map(rows, {"k": hexc("#2a2a2a"), "g": hexc("#5a6a70"), "L": hexc(liquid), "w": hexc("#f0f0f0"),
+                           "X": hexc("#d03a8a")})
+
+
+def moonshine():
+    rows = [
+        "................",
+        "....mmmmmmmm....",
+        "....MMMMMMMM....",
+        "...gLLLLLLLLg...",
+        "...gLhLLLLLLg...",
+        "...gLhLLLLLLg...",
+        "...gLLwwwwLLg...",
+        "...gLLwXXwLLg...",
+        "...gLLwwwwLLg...",
+        "...gLhLLLLLLg...",
+        "...gLLLLLLLLg...",
+        "...gLLLLLLLLg...",
+        "....gggggggg....",
+        "................",
+        "................",
+        "................",
+    ]
+    return from_map(rows, {"m": hexc("#b8b8b8"), "M": hexc("#8a8a8a"), "g": hexc("#6a8088"),
+                           "L": hexc("#e8f2f0", 170), "h": hexc("#ffffff", 220), "w": hexc("#d8c8a0"), "X": hexc("#3a2a1a")})
+
+
+def kava():
+    rows = [
+        "................",
+        "................",
+        "................",
+        "................",
+        "................",
+        "..wwwwwwwwwwww..",
+        "..wKKKKKKKKKKw..",
+        "..wKkKKKKKKKKw..",
+        "...wBBBBBBBBw...",
+        "...wBBBBBBBBw...",
+        "....wBBBBBBw....",
+        ".....wwwwww.....",
+        "................",
+        "................",
+        "................",
+        "................",
+    ]
+    return from_map(rows, {"w": hexc("#3a2414"), "K": hexc("#8a6a4a"), "k": hexc("#b0906a"), "B": hexc("#7a4a24")})
+
+
+def shot():
+    rows = [
+        "................",
+        "................",
+        "................",
+        "................",
+        ".....gggggg.....",
+        ".....gLLLLg.....",
+        ".....gAAAAg.....",
+        ".....gAhAAg.....",
+        ".....gAAAAg.....",
+        "......gAAg......",
+        "......gAAg......",
+        "......gGGg......",
+        "......gGGg......",
+        "......gggg......",
+        "................",
+        "................",
+    ]
+    return from_map(rows, {"g": hexc("#5a6a70"), "L": hexc("#e6f2f4", 140), "A": hexc("#d89a3a"), "h": hexc("#f6d08a"),
+                           "G": hexc("#cfe6ea")})
+
+
+def cured_tobacco():
+    px = tobacco_leaf()
+    for y in range(16):
+        for x in range(16):
+            c = px[y][x]
+            if c[3] and c != hexc("#2c3a12"):
+                px[y][x] = (min(255, int(c[0] * 1.15 + 40)), int(c[1] * 0.75), int(c[2] * 0.4), 255)
+    return px
+
+
+def ground_coffee():
+    return pile(5, [hexc("#3a2010"), hexc("#4e2c16"), hexc("#2a160a")], n=60, dot=2)
+
+
+def patch():
+    rows = [
+        "................",
+        "................",
+        "................",
+        "...bbbbbbbbbb...",
+        "...bCCCCCCCCb...",
+        "...bCccccccCb...",
+        "...bCcPPPPcCb...",
+        "...bCcPPPPcCb...",
+        "...bCcPPPPcCb...",
+        "...bCccccccCb...",
+        "...bCCCCCCCCb...",
+        "...bbbbbbbbbb...",
+        "................",
+        "................",
+        "................",
+        "................",
+    ]
+    return from_map(rows, {"b": hexc("#9a8a70"), "C": hexc("#e8d8b8"), "c": hexc("#d8c4a0"), "P": hexc("#c8a878")})
+
+
+def chip():
+    px = [[CLEAR] * 16 for _ in range(16)]
+    for y in range(16):
+        for x in range(16):
+            d = math.hypot(x + 0.5 - 8, y + 0.5 - 8)
+            if d <= 6.5:
+                px[y][x] = hexc("#b8902a") if d > 5.3 else hexc("#e8c04a")
+    for x, y in ((6, 6), (7, 5), (8, 5), (9, 6), (9, 7), (8, 8), (7, 9), (7, 10), (7, 11)):
+        pass
+    for x, y in ((8, 5), (7, 6), (8, 6), (8, 7), (8, 8), (8, 9), (8, 10), (7, 11), (8, 11), (9, 11)):   # a "1"
+        px[y][x] = hexc("#7a5a10")
+    return outline(px, hexc("#5a4210"))
+
+
+def guide():
+    rows = [
+        "................",
+        "...bbbbbbbbbb...",
+        "...bRRRRRRRRbp..",
+        "...bRRRRRRRRbp..",
+        "...bRGGGGGGRbp..",
+        "...bRGRRRRGRbp..",
+        "...bRGGGGGGRbp..",
+        "...bRRRRRRRRbp..",
+        "...bRRYYYYRRbp..",
+        "...bRRRRRRRRbp..",
+        "...bRRRRRRRRbp..",
+        "...bRRRRRRRRbp..",
+        "...bRRRRRRRRbp..",
+        "...bbbbbbbbbbp..",
+        "....pppppppppp..",
+        "................",
+    ]
+    return from_map(rows, {"b": hexc("#3a1010"), "R": hexc("#8a1c2a"), "G": hexc("#d4af37"), "Y": hexc("#e8d48a"),
+                           "p": hexc("#f0ead8")})
+
+
 ICONS = {
     "vice_beer": beer, "vice_liquor": liquor, "vice_cigarette": cigarette, "vice_cigar": cigar,
     "vice_cocaine": cocaine, "vice_ketamine": ketamine, "vice_opium": opium,
@@ -753,6 +994,14 @@ ICONS = {
     "vice_coffee_beans": coffee_beans, "vice_tea_leaves": tea_leaves,
     "vice_white_monster": white_monster, "vice_crack": crack, "vice_meth": meth,
     "vice_heroin": lambda: syringe("#5a3214", "#e07a1a"),
+    "vice_lean": lean, "vice_lsd": lsd,
+    "vice_xanax": lambda: pill((hexc("#f4f4f0"), hexc("#dcdcd4")), "bar"),
+    "vice_ecstasy": lambda: pill((hexc("#ff7ad0"), hexc("#e050b0")), "round", [(6, 6), (9, 6), (6, 9), (7, 10), (8, 10), (9, 9)]),
+    "vice_adderall": lambda: pill((hexc("#ff9a2a"), hexc("#f4f0e8")), "capsule"),
+    "vice_vape": vape, "vice_vape_juice": lambda: bottle_small("#ff6ab0"),
+    "vice_moonshine": moonshine, "vice_kava": kava, "vice_shot": shot,
+    "vice_cured_tobacco": cured_tobacco, "vice_ground_coffee": ground_coffee,
+    "vice_nicotine_patch": patch, "vice_recovery_chip": chip, "vice_guide": guide,
 }
 BLOCK_TEX = {
     **{f"vice_weed_plant_{i}": (lambda i=i: weed_plant(i)) for i in range(4)},

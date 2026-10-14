@@ -1,0 +1,30 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "vice:guide",
+      "menu_category": {
+        "category": "items",
+        "group": "vice:vices"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "textures": {
+          "default": "vice_guide"
+        }
+      },
+      "minecraft:display_name": {
+        "value": "Vice Guide & Settings"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:tags": {
+        "tags": [
+          "vice:substance"
+        ]
+      },
+      "vice:guide": {},
+      "minecraft:glint": true
+    }
+  }
+}

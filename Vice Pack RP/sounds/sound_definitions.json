@@ -1,0 +1,104 @@
+{
+  "format_version": "1.14.0",
+  "sound_definitions": {
+    "vice.lighter": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/vice/lighter",
+          "volume": 0.8
+        }
+      ]
+    },
+    "vice.can_open": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/vice/can_open",
+          "volume": 0.9
+        }
+      ]
+    },
+    "vice.pour": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/vice/pour",
+          "volume": 0.8
+        }
+      ]
+    },
+    "vice.cough": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/vice/cough",
+          "volume": 0.9
+        }
+      ]
+    },
+    "vice.sniff": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/vice/sniff",
+          "volume": 0.9
+        }
+      ]
+    },
+    "vice.bubble": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/vice/bubble",
+          "volume": 0.8
+        }
+      ]
+    },
+    "vice.exhale": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/vice/exhale",
+          "volume": 0.6
+        }
+      ]
+    },
+    "vice.pill": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/vice/pill",
+          "volume": 0.8
+        }
+      ]
+    },
+    "vice.whistle": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/vice/whistle",
+          "volume": 0.7
+        }
+      ]
+    },
+    "vice.grind": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/vice/grind",
+          "volume": 0.8
+        }
+      ]
+    },
+    "vice.clack": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/vice/clack",
+          "volume": 0.9
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:block": {
+    "description": {
+      "identifier": "vice:drying_rack",
+      "menu_category": {
+        "category": "items",
+        "group": "vice:vices"
+      },
+      "traits": {
+        "minecraft:placement_direction": {
+          "enabled_states": [
+            "minecraft:cardinal_direction"
+          ]
+        }
+      },
+      "states": {
+        "vice:leaves": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "vice:dried": [
+          false,
+          true
+        ]
+      }
+    },
+    "components": {
+      "minecraft:geometry": {
+        "identifier": "geometry.vice_drying_rack",
+        "bone_visibility": {
+          "green0": "q.block_state('vice:leaves') > 0 && !q.block_state('vice:dried')",
+          "green1": "q.block_state('vice:leaves') > 1 && !q.block_state('vice:dried')",
+          "green2": "q.block_state('vice:leaves') > 2 && !q.block_state('vice:dried')",
+          "green3": "q.block_state('vice:leaves') > 3 && !q.block_state('vice:dried')",
+          "dry0": "q.block_state('vice:leaves') > 0 && q.block_state('vice:dried')",
+          "dry1": "q.block_state('vice:leaves') > 1 && q.block_state('vice:dried')",
+          "dry2": "q.block_state('vice:leaves') > 2 && q.block_state('vice:dried')",
+          "dry3": "q.block_state('vice:leaves') > 3 && q.block_state('vice:dried')"
+        }
+      },
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "vice_furniture",
+          "render_method": "alpha_test"
+        }
+      },
+      "minecraft:collision_box": {
+        "origin": [
+          -7.5,
+          0,
+          -2
+        ],
+        "size": [
+          15.0,
+          15,
+          4
+        ]
+      },
+      "minecraft:selection_box": {
+        "origin": [
+          -7.5,
+          0,
+          -2
+        ],
+        "size": [
+          15.0,
+          15,
+          4
+        ]
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.8
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 3
+      },
+      "minecraft:light_dampening": 0,
+      "vice:station": {}
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('minecraft:cardinal_direction') == 'north'",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('minecraft:cardinal_direction') == 'west'",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('minecraft:cardinal_direction') == 'south'",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('minecraft:cardinal_direction') == 'east'",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              270,
+              0
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

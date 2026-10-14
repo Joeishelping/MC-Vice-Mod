@@ -82,6 +82,51 @@
     },
     "vice_heroin": {
       "textures": "textures/items/vice_heroin"
+    },
+    "vice_lean": {
+      "textures": "textures/items/vice_lean"
+    },
+    "vice_lsd": {
+      "textures": "textures/items/vice_lsd"
+    },
+    "vice_xanax": {
+      "textures": "textures/items/vice_xanax"
+    },
+    "vice_ecstasy": {
+      "textures": "textures/items/vice_ecstasy"
+    },
+    "vice_adderall": {
+      "textures": "textures/items/vice_adderall"
+    },
+    "vice_vape": {
+      "textures": "textures/items/vice_vape"
+    },
+    "vice_vape_juice": {
+      "textures": "textures/items/vice_vape_juice"
+    },
+    "vice_moonshine": {
+      "textures": "textures/items/vice_moonshine"
+    },
+    "vice_kava": {
+      "textures": "textures/items/vice_kava"
+    },
+    "vice_shot": {
+      "textures": "textures/items/vice_shot"
+    },
+    "vice_cured_tobacco": {
+      "textures": "textures/items/vice_cured_tobacco"
+    },
+    "vice_ground_coffee": {
+      "textures": "textures/items/vice_ground_coffee"
+    },
+    "vice_nicotine_patch": {
+      "textures": "textures/items/vice_nicotine_patch"
+    },
+    "vice_recovery_chip": {
+      "textures": "textures/items/vice_recovery_chip"
+    },
+    "vice_guide": {
+      "textures": "textures/items/vice_guide"
     }
   }
 }

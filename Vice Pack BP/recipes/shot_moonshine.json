@@ -1,0 +1,32 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "vice:craft_shot_moonshine"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "unlock": {
+      "context": "AlwaysUnlocked"
+    },
+    "ingredients": [
+      {
+        "item": "vice:moonshine"
+      },
+      {
+        "item": "minecraft:glass_pane"
+      },
+      {
+        "item": "minecraft:glass_pane"
+      },
+      {
+        "item": "minecraft:glass_pane"
+      }
+    ],
+    "result": {
+      "item": "vice:shot",
+      "count": 3
+    }
+  }
+}

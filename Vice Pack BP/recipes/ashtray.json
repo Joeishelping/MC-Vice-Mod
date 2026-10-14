@@ -1,0 +1,26 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "vice:craft_ashtray"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "unlock": {
+      "context": "AlwaysUnlocked"
+    },
+    "ingredients": [
+      {
+        "item": "minecraft:brick"
+      },
+      {
+        "item": "minecraft:brick"
+      }
+    ],
+    "result": {
+      "item": "vice:ashtray",
+      "count": 1
+    }
+  }
+}

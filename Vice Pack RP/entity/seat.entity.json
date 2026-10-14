@@ -1,0 +1,20 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "vice:seat",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/blocks/vice_furniture"
+      },
+      "geometry": {
+        "default": "geometry.vice_seat"
+      },
+      "render_controllers": [
+        "controller.render.default"
+      ]
+    }
+  }
+}

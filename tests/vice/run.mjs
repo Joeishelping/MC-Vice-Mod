@@ -1,13 +1,18 @@
 // Headless check of Vice Pack's script against the mock API: every item, placing, the snort, the bong, the plant,
 // overdoses. Fails on any thrown error, unknown id or missing effect.
 import fs from "node:fs";
-import { fire, advance, player, LOG, inv, block, ItemStack, BlockPermutation } from "@minecraft/server";
+import { fire, advance, player, LOG, inv, block, ItemStack, BlockPermutation, friend, skipWorldTime, others } from "@minecraft/server";
+import { UI } from "@minecraft/server-ui";
 // main.js has to sit next to node_modules to find the mock
-fs.copyFileSync(new URL("../../Vice Pack BP/scripts/main.js", import.meta.url), new URL("./main.copy.js", import.meta.url));
-await import("./main.copy.js");
+fs.mkdirSync(new URL("./scripts/", import.meta.url), { recursive: true });
+for (const f of fs.readdirSync(new URL("../../Vice Pack BP/scripts/", import.meta.url))) {
+  fs.copyFileSync(new URL(`../../Vice Pack BP/scripts/${f}`, import.meta.url), new URL(`./scripts/${f}`, import.meta.url));
+}
+await import("./scripts/main.js");
 
 const comps = {};
-fire("startup", { blockComponentRegistry: { registerCustomComponent: (n, c) => { comps[n] = c; } } });
+const itemComps = {};
+fire("startup", { blockComponentRegistry: { registerCustomComponent: (n, c) => { comps[n] = c; } }, itemComponentRegistry: { registerCustomComponent: (n, c) => { itemComps[n] = c; } } });
 const use = (id) => fire("use", { source: player, itemStack: { typeId: "vice:" + id } });
 const count = (k, v) => LOG.filter((l) => l[0] === k && (v === undefined || l[1] === v)).length;
 const msgs = () => LOG.filter((l) => l[0] === "msg").map((l) => l[1]);
@@ -122,9 +127,9 @@ inv.fill(undefined);
 for (const i of ["zynn", "coffee", "tea", "wine", "morphine"]) { use(i); advance(20); }
 const noLeaf = fire("itemUse", { source: player, itemStack: { typeId: "vice:pipe" } });
 check("pipe needs tobacco", noLeaf.cancel);
-inv[3] = new ItemStack("vice:tobacco_leaf", 1);
+inv[3] = new ItemStack("vice:cured_tobacco", 1);
 use("pipe"); advance(20);
-check("pipe burned the leaf", inv[3] === undefined && msgs().some((m) => m.includes("good pipe")));
+check("pipe burned the cured tobacco", inv[3] === undefined && msgs().some((m) => m.includes("good pipe")));
 
 // every crop grows and harvests
 for (const [crop, product] of [["tobacco", "vice:tobacco_leaf"], ["poppy", "vice:opium"], ["coffee", "vice:coffee_beans"], ["tea", "vice:tea_leaves"]]) {
@@ -183,6 +188,146 @@ advance(20 * 300);
 check("nicotine withdrawal", msgs().some((m) => m.includes("kill for a smoke")));
 sober();
 check("Narcaine ends the habit", player.getDynamicProperty("vice:addict") === undefined);
+
+// ---------------------------------------------------------------- v2.0
+// the new ones all do something
+for (const id of ["lean", "lsd", "xanax", "ecstasy", "adderall", "moonshine", "kava", "shot"]) check(`${id} has effects`, effectsOf(id).length >= 1);
+sober(); inv.fill(undefined); inv[4] = new ItemStack("vice:vape_juice", 1);
+m0 = LOG.length; use("vape"); advance(30);
+check("vape burns juice, big cloud", inv[4] === undefined && LOG.slice(m0).some((l) => l[0] === "particle" && l[1] === "vice:smoke_puff"));
+// ecstasy: hearts over the people around you; LSD: notes as you walk
+sober(); const pal = friend("Alex", { x: 3, y: 64, z: 0.5 });
+use("ecstasy"); m0 = LOG.length; advance(20 * 5);
+check("ecstasy: hearts over friends", LOG.slice(m0).some((l) => l[0] === "particle" && l[1] === "minecraft:heart_particle"));
+sober(); use("lsd"); player.velocity = { x: 0.2, y: 0, z: 0 }; m0 = LOG.length; advance(20 * 30);
+check("lsd: the world sings as you walk", LOG.slice(m0).filter((l) => l[0] === "sound" && l[1] === "note.bell").length > 3);
+player.velocity = undefined;
+
+// bad combos
+sober(); use("beer"); use("beer"); use("heroin"); advance(5);
+check("downers mixed: warning", msgs().some((m) => m.includes("Mixing downers")));
+sober(); use("liquor"); use("cocaine"); advance(5);
+check("coke + booze: heart strain", msgs().some((m) => m.includes("Coke and booze")));
+sober(); use("beer"); use("beer"); use("coffee"); advance(5);
+check("uppers hide the drunk", msgs().some((m) => m.includes("You're not")));
+sober(); use("joint"); use("beer"); use("beer"); use("beer"); advance(5);
+check("crossfaded", msgs().some((m) => m.includes("Crossfaded")));
+sober();
+
+// stations
+const place = (x, id, states = {}) => { const b = block({ x, y: 64, z: 20 }); b.setPermutation(BlockPermutation.resolve(id, states)); return b; };
+const station = (b) => { advance(5); comps["vice:station"].onPlayerInteract({ player, block: b }); };
+const got = (id) => LOG.some((l) => (l[0] === "got" || l[0] === "drop") && l[1] === id);
+const fireUnder = (b) => block({ ...b.location, y: b.location.y - 1 }).setPermutation(new BlockPermutation("minecraft:campfire", {}));
+inv.fill(undefined);
+const brl = place(30, "vice:brew_barrel");
+inv[0] = new ItemStack("minecraft:wheat", 2); station(brl); station(brl);
+check("barrel brewing", brl.permutation.getState("vice:stage") === 1);
+skipWorldTime(4000); advance(45);
+check("barrel ready", brl.permutation.getState("vice:stage") === 2);
+inv[0] = new ItemStack("minecraft:glass_bottle", 2); station(brl); station(brl);
+check("barrel: two beers", LOG.filter((l) => l[0] === "got" && l[1] === "vice:beer").length >= 2 && brl.permutation.getState("vice:stage") === 0);
+const stl = place(32, "vice:still"); fireUnder(stl);
+inv[0] = new ItemStack("minecraft:sugar_cane", 1); station(stl);
+advance(20 * 95);
+inv[0] = new ItemStack("minecraft:glass_bottle", 1); station(stl);
+check("still: moonshine", got("vice:moonshine"));
+const rck = place(34, "vice:drying_rack");
+inv[0] = new ItemStack("vice:tobacco_leaf", 2); station(rck); station(rck);
+check("rack: 2 leaves hung", rck.permutation.getState("vice:leaves") === 2);
+skipWorldTime(2500); advance(45);
+check("rack: cured", rck.permutation.getState("vice:dried") === true);
+station(rck);
+check("rack: cured tobacco", got("vice:cured_tobacco"));
+const labb = place(36, "vice:lab_table");
+inv[0] = new ItemStack("vice:opium", 1); station(labb);
+check("lab: cooking", labb.permutation.getState("vice:busy") === true);
+skipWorldTime(700); advance(45);
+check("lab: done (or it blew up)", labb.permutation.getState("vice:busy") === false && (got("vice:heroin") || LOG.some((l) => l[0] === "explosion") || msgs().some((m) => m.includes("Toxic fumes"))));
+const grd = place(38, "vice:coffee_grinder");
+inv[0] = new ItemStack("vice:coffee_beans", 2); station(grd); advance(30);
+check("grinder: ground coffee", got("vice:ground_coffee"));
+inv.fill(undefined);
+const ktl = place(40, "vice:kettle"); fireUnder(ktl);
+inv[0] = new ItemStack("minecraft:water_bucket", 1); station(ktl);
+check("kettle filled, bucket back", inv[0]?.typeId === "minecraft:bucket");
+inv[0] = new ItemStack("minecraft:bowl", 1); inv[6] = new ItemStack("vice:tea_leaves", 1); station(ktl); advance(40);
+check("kettle: tea", got("vice:tea"));
+const cmc = place(42, "vice:coffee_machine");
+inv[0] = new ItemStack("minecraft:bowl", 1); inv[6] = new ItemStack("vice:ground_coffee", 1); station(cmc); advance(55);
+check("coffee machine: coffee", got("vice:coffee"));
+const kg = place(44, "vice:beer_keg");
+inv[0] = new ItemStack("vice:beer", 1); station(kg);
+inv[0] = undefined; m0 = LOG.length; station(kg);
+check("keg: pour in, drink from the tap", LOG.slice(m0).some((l) => l[0] === "bar" && l[1].includes("Straight from the tap")) && LOG.slice(m0).some((l) => l[0] === "effect" && l[1] === "strength"));
+const pt = place(46, "vice:pool_table"); m0 = LOG.length; station(pt);
+check("pool: clack", LOG.slice(m0).some((l) => l[0] === "sound" && l[1] === "vice.clack"));
+const stool = place(48, "vice:bar_stool"); station(stool);
+check("stool: sit", LOG.some((l) => l[0] === "spawn" && l[1] === "vice:seat") && LOG.some((l) => l[0] === "ride"));
+const hk = place(50, "vice:hookah");
+inv[0] = new ItemStack("vice:cured_tobacco", 1); station(hk);
+check("hookah loaded", hk.permutation.getState("vice:loaded") === true);
+inv[0] = undefined; sober(); m0 = LOG.length; station(hk); advance(40);
+check("hookah puff", LOG.slice(m0).some((l) => l[0] === "sound" && l[1] === "vice.bubble") && LOG.slice(m0).some((l) => l[0] === "effect" && l[1] === "haste"));
+// an ashtray near you takes the butt
+const ash = block({ x: 1, y: 64, z: 1 }); ash.setPermutation(BlockPermutation.resolve("vice:ashtray"));
+sober(); use("cigarette"); advance(20 * 45);
+check("ashtray takes the butt", ash.permutation.getState("vice:butts") === 1);
+ash.setType("minecraft:air");
+// breaking a full barrel gives it back
+const brl2 = place(52, "vice:brew_barrel");
+inv[0] = new ItemStack("minecraft:sweet_berries", 3); station(brl2); station(brl2); station(brl2);
+fire("break", { player, block: brl2, dimension: brl2.dimension, brokenBlockPermutation: brl2.permutation });
+check("broken barrel gives the berries back", LOG.some((l) => l[0] === "drop" && l[1] === "minecraft:sweet_berries" && l[2] === 3));
+
+// friends: pass it, buy a round
+inv.fill(undefined); inv[0] = new ItemStack("vice:joint", 2);
+player.isSneaking = true; player.lookAt = pal;
+const pass = fire("itemUse", { source: player, itemStack: inv[0] }); advance(3);
+check("pass the joint", pass.cancel && pal.inv.some((x) => x?.typeId === "vice:joint") && inv[0].amount === 1);
+player.lookAt = undefined; advance(25);
+inv[0] = new ItemStack("vice:beer", 3);
+fire("itemUse", { source: player, itemStack: inv[0] }); advance(3);
+player.isSneaking = false;
+check("buy a round", pal.inv.some((x) => x?.typeId === "vice:beer") && LOG.some((l) => l[0] === "msg2" && l[2].includes("buys a round")));
+// contact high
+sober(); fire("use", { source: pal, itemStack: { typeId: "vice:joint" } }); advance(20 * 3);
+check("contact high", msgs().some((m) => m.includes("Contact high")));
+
+// sleep
+sober(); use("coffee"); player.isSleeping = true; advance(25);
+check("can't sleep wired", msgs().some((m) => m.includes("can't sleep")));
+sober(); use("liquor"); use("liquor"); player.isSleeping = true; advance(20 * 4);
+check("slept it off", msgs().some((m) => m.includes("slept it off")));
+player.isSleeping = false;
+
+// recovery: a day clean is a chip; using again is a relapse
+sober(); use("cigarette"); advance(20);
+skipWorldTime(25000); advance(20 * 21);
+check("1 day clean: a chip", got("vice:recovery_chip") && msgs().some((m) => m.includes("1 Day Clean")));
+use("cigarette"); advance(5);
+check("relapse", msgs().some((m) => m.includes("Relapse")));
+
+// slurred chat
+sober(); for (let i = 0; i < 3; i++) use("liquor"); advance(3);
+const chat = fire("chat", { sender: player, message: "this is so so nice" }); advance(2);
+check("drunk chat slurs", chat.cancel && LOG.some((l) => l[0] === "broadcast" && l[1].includes("<Steve>")));
+
+// the guide and the settings: turn off overdoses and camera effects
+sober();
+UI.answers.push({ selection: 2 }, { formValues: [50, false, false, true, true, true] });
+itemComps["vice:guide"].onUse({ source: player }); advance(3); await new Promise((r) => setTimeout(r, 10));
+check("guide opens", UI.shown.some((f) => f.title === "Vice Guide"));
+check("settings saved", JSON.parse(String((await import("@minecraft/server")).world.getDynamicProperty("vice:settings"))).overdoses === false);
+sober(); use("heroin"); advance(20); use("heroin"); m0 = LOG.length; advance(20 * 20);
+check("overdoses off", !msgs().slice(-10).some((m) => m.includes("overdose")) && !LOG.slice(m0).some((l) => l[0] === "camera"));
+UI.answers.push({ selection: 2 }, { formValues: [100, true, true, true, true, true] });
+fire("scriptevent", { id: "vice:menu", sourceEntity: player }); advance(3); await new Promise((r) => setTimeout(r, 10));
+check("/scriptevent vice:menu, settings back on", (await import("@minecraft/server")).world.getDynamicProperty("vice:settings").includes('"overdoses":true'));
+UI.answers.push({ selection: 0 }, { selection: 1 });
+fire("scriptevent", { id: "vice:menu", sourceEntity: player }); advance(3); await new Promise((r) => setTimeout(r, 10));
+check("status page", UI.shown.some((f) => f.title === "How am I doing?" && f.body.includes("Recovery")));
+others.length = 0;
 
 // a placed narcaine works too
 const nb = block({ x: 10, y: 64, z: 10 });
